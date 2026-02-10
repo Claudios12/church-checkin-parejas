@@ -50,7 +50,12 @@ bun --version
 
 1. Copia la carpeta `church-checkin` a la PC de la iglesia
 2. Abre CMD o PowerShell en la carpeta del proyecto
-3. Instala las dependencias:
+3. **IMPORTANTE:** Crea el archivo de configuración:
+   ```bash
+   copy .env.example .env
+   ```
+   Este archivo contiene la configuración local (nombre de iglesia, base de datos, etc.)
+4. Instala las dependencias:
    ```bash
    bun install
    ```
