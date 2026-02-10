@@ -18,8 +18,7 @@
             class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
           />
           <span class="ml-3 text-lg">
-            {{ child.firstName }} {{ child.lastName }}
-            <span v-if="child.allergies || child.specialNeeds" class="text-red-600 text-sm">⚠</span>
+            {{ child.firstName }} {{ child.lastName }} ({{ calculateAge(child.birthDate) }} años)
           </span>
         </label>
       </div>
@@ -61,14 +60,13 @@
 
 <script setup lang="ts">
 import type { Child } from '~/composables/useCheckIn'
+import { calculateAge } from '~/utils/age'
 
 interface ExistingChild {
   id: string
   firstName: string
   lastName: string
-  birthDate?: string | null
-  allergies?: string | null
-  specialNeeds?: string | null
+  birthDate: string
 }
 
 interface Props {
@@ -93,8 +91,6 @@ const newChildren = ref<Child[]>(
       firstName: '',
       lastName: '',
       birthDate: '',
-      allergies: '',
-      specialNeeds: '',
     },
   ]
 )
@@ -108,8 +104,6 @@ const addNewChild = () => {
     firstName: '',
     lastName: '',
     birthDate: '',
-    allergies: '',
-    specialNeeds: '',
   })
 }
 
@@ -138,22 +132,18 @@ const emitChildren = () => {
         id: existing.id,
         firstName: existing.firstName,
         lastName: existing.lastName,
-        birthDate: existing.birthDate || undefined,
-        allergies: existing.allergies || undefined,
-        specialNeeds: existing.specialNeeds || undefined,
+        birthDate: existing.birthDate,
       })
     }
   })
 
-  // Add new children (only if they have a name)
+  // Add new children (only if they have a name and birthDate)
   newChildren.value.forEach((child) => {
-    if (child.firstName && child.lastName) {
+    if (child.firstName && child.lastName && child.birthDate) {
       children.push({
         firstName: child.firstName,
         lastName: child.lastName,
-        birthDate: child.birthDate || undefined,
-        allergies: child.allergies || undefined,
-        specialNeeds: child.specialNeeds || undefined,
+        birthDate: child.birthDate,
       })
     }
   })

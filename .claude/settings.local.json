@@ -7,7 +7,8 @@
       "Bash(npx prisma validate:*)",
       "Bash(npm install:*)",
       "Bash(npx prisma migrate dev:*)",
-      "Bash(npx prisma generate:*)"
+      "Bash(npx prisma generate:*)",
+      "Bash(bunx prisma migrate dev:*)"
     ]
   }
 }

@@ -10,9 +10,7 @@ interface ChildInput {
   id?: string // Optional: existing child ID
   firstName: string
   lastName: string
-  birthDate?: string
-  allergies?: string
-  specialNeeds?: string
+  birthDate: string
 }
 
 interface CheckInRequest {
@@ -94,9 +92,7 @@ export default defineEventHandler(async (event) => {
           data: {
             firstName: childData.firstName,
             lastName: childData.lastName,
-            birthDate: childData.birthDate ? new Date(childData.birthDate) : null,
-            allergies: childData.allergies || null,
-            specialNeeds: childData.specialNeeds || null,
+            birthDate: new Date(childData.birthDate),
           },
         })
       } else {
@@ -105,9 +101,7 @@ export default defineEventHandler(async (event) => {
           data: {
             firstName: childData.firstName,
             lastName: childData.lastName,
-            birthDate: childData.birthDate ? new Date(childData.birthDate) : null,
-            allergies: childData.allergies || null,
-            specialNeeds: childData.specialNeeds || null,
+            birthDate: new Date(childData.birthDate),
             familyId: family.id,
           },
         })
@@ -147,8 +141,7 @@ export default defineEventHandler(async (event) => {
           id: checkIn.child.id,
           firstName: checkIn.child.firstName,
           lastName: checkIn.child.lastName,
-          allergies: checkIn.child.allergies,
-          specialNeeds: checkIn.child.specialNeeds,
+          birthDate: checkIn.child.birthDate.toISOString(),
         },
         family: {
           id: checkIn.family.id,

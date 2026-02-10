@@ -5,42 +5,76 @@
 
       <!-- Stickers Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <div
-          v-for="checkIn in checkIns"
-          :key="checkIn.id"
-          class="sticker-card border-4 border-gray-800 rounded-lg p-6 bg-white"
-        >
-          <div class="text-center">
-            <div class="church-name text-lg font-bold mb-3 text-gray-700">
-              {{ churchName }}
-            </div>
-            <div class="child-name text-4xl font-bold mb-2 text-gray-900">
-              {{ checkIn.child.firstName }}
-            </div>
-            <div class="family-name text-2xl mb-4 text-gray-600">
-              {{ checkIn.child.lastName }}
-            </div>
-            <div class="security-code text-5xl font-bold border-4 border-yellow-500 rounded-lg py-3 px-4 mb-3 bg-yellow-500 text-black">
-              {{ checkIn.checkInNumber }}
-            </div>
-            <div class="timestamp text-sm text-gray-500">
-              {{ formatDate(checkIn.checkInTime) }}
-            </div>
-            <div class="timestamp text-sm text-gray-500">
-              {{ formatTime(checkIn.checkInTime) }}
-            </div>
-            <div v-if="checkIn.child.allergies || checkIn.child.specialNeeds" class="mt-2 text-red-600 font-bold">
-              ⚠ Ver notas
+        <template v-for="checkIn in checkIns" :key="checkIn.id">
+          <!-- Child Sticker -->
+          <div class="sticker-card border-4 border-blue-500 rounded-lg p-6 bg-white">
+            <div class="text-center">
+              <div class="sticker-type text-xs font-bold mb-2 text-blue-600 uppercase">
+                NIÑO
+              </div>
+              <div class="church-name text-lg font-bold mb-3 text-gray-700">
+                {{ churchName }}
+              </div>
+              <div class="child-name text-4xl font-bold mb-2 text-gray-900">
+                {{ checkIn.child.firstName }}
+              </div>
+              <div class="family-name text-2xl mb-4 text-gray-600">
+                {{ checkIn.child.lastName }}
+              </div>
+              <div class="security-code text-5xl font-bold border-4 border-yellow-500 rounded-lg py-3 px-4 mb-3 bg-yellow-500 text-black">
+                {{ checkIn.checkInNumber }}
+              </div>
+              <div class="timestamp text-sm text-gray-500">
+                {{ formatDate(checkIn.checkInTime) }}
+              </div>
+              <div class="timestamp text-sm text-gray-500">
+                {{ formatTime(checkIn.checkInTime) }}
+              </div>
+              <div class="mt-2 text-gray-600 font-semibold">
+                {{ calculateAge(checkIn.child.birthDate) }} años
+              </div>
             </div>
           </div>
-        </div>
+
+          <!-- Parent Sticker -->
+          <div class="sticker-card border-4 border-green-500 rounded-lg p-6 bg-white">
+            <div class="text-center">
+              <div class="sticker-type text-xs font-bold mb-2 text-green-600 uppercase">
+                PADRE/MADRE - RECOGIDA
+              </div>
+              <div class="church-name text-lg font-bold mb-3 text-gray-700">
+                {{ churchName }}
+              </div>
+              <div class="child-name text-3xl font-bold mb-2 text-gray-900">
+                Para recoger a:
+              </div>
+              <div class="family-name text-3xl mb-4 text-gray-700 font-bold">
+                {{ checkIn.child.firstName }}
+              </div>
+              <div class="security-code text-5xl font-bold border-4 border-yellow-500 rounded-lg py-3 px-4 mb-3 bg-yellow-500 text-black">
+                {{ checkIn.checkInNumber }}
+              </div>
+              <div class="timestamp text-sm text-gray-500">
+                {{ formatDate(checkIn.checkInTime) }}
+              </div>
+              <div class="timestamp text-sm text-gray-500">
+                {{ formatTime(checkIn.checkInTime) }}
+              </div>
+              <div class="mt-2 text-gray-600 font-semibold">
+                Conserve este sticker
+              </div>
+            </div>
+          </div>
+        </template>
       </div>
 
       <!-- Instructions -->
       <div class="bg-gray-800 border border-gray-600 rounded-lg p-4 mb-6">
         <p class="text-center text-lg text-gray-200">
-          <strong>{{ checkIns.length }}</strong> etiqueta{{ checkIns.length !== 1 ? 's' : '' }} lista{{ checkIns.length !== 1 ? 's' : '' }} para imprimir.
-          Cada niño debe conservar su etiqueta para la recogida.
+          <strong>{{ checkIns.length * 2 }}</strong> etiquetas listas para imprimir ({{ checkIns.length }} niño{{ checkIns.length !== 1 ? 's' : '' }} + {{ checkIns.length }} padre{{ checkIns.length !== 1 ? 's' : '' }}).
+        </p>
+        <p class="text-center text-sm text-gray-300 mt-2">
+          El niño conserva su etiqueta <span class="text-blue-400">AZUL</span>. El padre conserva su etiqueta <span class="text-green-400">VERDE</span> para la recogida.
         </p>
       </div>
 
@@ -86,6 +120,7 @@
 
 <script setup lang="ts">
 import type { CheckInResult } from '~/composables/useCheckIn'
+import { calculateAge } from '~/utils/age'
 
 interface Props {
   checkIns: CheckInResult[]

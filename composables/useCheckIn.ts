@@ -7,9 +7,7 @@ export interface Child {
   id?: string
   firstName: string
   lastName: string
-  birthDate?: string
-  allergies?: string
-  specialNeeds?: string
+  birthDate: string
 }
 
 export interface CheckInFormData {
@@ -26,8 +24,7 @@ export interface CheckInResult {
     id: string
     firstName: string
     lastName: string
-    allergies?: string | null
-    specialNeeds?: string | null
+    birthDate: string
   }
   family: {
     id: string
@@ -50,9 +47,7 @@ export interface FamilySearchResult {
       id: string
       firstName: string
       lastName: string
-      birthDate?: string | null
-      allergies?: string | null
-      specialNeeds?: string | null
+      birthDate: string
     }>
   } | null
 }

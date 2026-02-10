@@ -12,46 +12,28 @@
       </UiButton>
     </div>
 
-    <div class="space-y-3">
-      <div class="grid grid-cols-2 gap-3">
-        <UiInput
-          v-model="localChild.firstName"
-          type="text"
-          label="Nombre"
-          placeholder="Emma"
-          required
-        />
-
-        <UiInput
-          v-model="localChild.lastName"
-          type="text"
-          label="Apellido"
-          placeholder="Pérez"
-          required
-        />
-      </div>
+    <div class="grid grid-cols-3 gap-3">
+      <UiInput
+        v-model="localChild.firstName"
+        type="text"
+        label="Nombre"
+        placeholder="Emma"
+        required
+      />
 
       <UiInput
-        :model-value="localChild.birthDate || ''"
+        v-model="localChild.lastName"
+        type="text"
+        label="Apellido"
+        placeholder="Pérez"
+        required
+      />
+
+      <UiInput
+        v-model="localChild.birthDate"
         type="date"
-        label="Fecha de Nacimiento (Opcional)"
-        @update:model-value="(value) => localChild.birthDate = value as string"
-      />
-
-      <UiInput
-        :model-value="localChild.allergies || ''"
-        type="text"
-        label="Alergias (Opcional)"
-        placeholder="Maní, lácteos, etc."
-        @update:model-value="(value) => localChild.allergies = value as string"
-      />
-
-      <UiInput
-        :model-value="localChild.specialNeeds || ''"
-        type="text"
-        label="Necesidades Especiales (Opcional)"
-        placeholder="Cualquier instrucción especial"
-        @update:model-value="(value) => localChild.specialNeeds = value as string"
+        label="Fecha de Nacimiento"
+        required
       />
     </div>
   </div>

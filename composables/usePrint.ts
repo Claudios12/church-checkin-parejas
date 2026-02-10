@@ -1,4 +1,5 @@
 import type { CheckInResult } from './useCheckIn'
+import { calculateAge } from '~/utils/age'
 
 export const usePrint = () => {
   const config = useRuntimeConfig()
@@ -6,30 +7,51 @@ export const usePrint = () => {
 
   const generateStickerGrids = (checkIns: CheckInResult[]): string => {
     const stickersPerPage = 4 // 2x2 grid
-    const pages: CheckInResult[][] = []
+
+    // Create array with both child and parent stickers
+    const allStickers: { checkIn: CheckInResult; type: 'child' | 'parent' }[] = []
+    checkIns.forEach(checkIn => {
+      allStickers.push({ checkIn, type: 'child' })
+      allStickers.push({ checkIn, type: 'parent' })
+    })
 
     // Group stickers into pages of 4
-    for (let i = 0; i < checkIns.length; i += stickersPerPage) {
-      pages.push(checkIns.slice(i, i + stickersPerPage))
+    const pages: typeof allStickers[] = []
+    for (let i = 0; i < allStickers.length; i += stickersPerPage) {
+      pages.push(allStickers.slice(i, i + stickersPerPage))
     }
 
     return pages.map((pageStickers) => `
       <div class="stickers-grid">
-        ${pageStickers.map((checkIn) => `
-          <div class="sticker">
-            <div class="church-name">${churchName}</div>
-            <div class="child-name">${checkIn.child.firstName}</div>
-            <div class="family-name">${checkIn.child.lastName}</div>
-            <div class="security-code">${checkIn.checkInNumber}</div>
-            <div class="timestamp">${formatDate(checkIn.checkInTime)}</div>
-            <div class="timestamp">${formatTime(checkIn.checkInTime)}</div>
-            ${
-              checkIn.child.allergies || checkIn.child.specialNeeds
-                ? `<div class="special-info">⚠ Ver notas</div>`
-                : ''
-            }
-          </div>
-        `).join('')}
+        ${pageStickers.map(({ checkIn, type }) => {
+          if (type === 'child') {
+            return `
+              <div class="sticker child-sticker">
+                <div class="sticker-type">NIÑO</div>
+                <div class="church-name">${churchName}</div>
+                <div class="child-name">${checkIn.child.firstName}</div>
+                <div class="family-name">${checkIn.child.lastName}</div>
+                <div class="security-code">${checkIn.checkInNumber}</div>
+                <div class="timestamp">${formatDate(checkIn.checkInTime)}</div>
+                <div class="timestamp">${formatTime(checkIn.checkInTime)}</div>
+                <div class="age-info">${calculateAge(checkIn.child.birthDate)} años</div>
+              </div>
+            `
+          } else {
+            return `
+              <div class="sticker parent-sticker">
+                <div class="sticker-type">PADRE/MADRE - RECOGIDA</div>
+                <div class="church-name">${churchName}</div>
+                <div class="pickup-label">Para recoger a:</div>
+                <div class="pickup-child-name">${checkIn.child.firstName}</div>
+                <div class="security-code">${checkIn.checkInNumber}</div>
+                <div class="timestamp">${formatDate(checkIn.checkInTime)}</div>
+                <div class="timestamp">${formatTime(checkIn.checkInTime)}</div>
+                <div class="keep-sticker">Conserve este sticker</div>
+              </div>
+            `
+          }
+        }).join('')}
       </div>
     `).join('')
   }
@@ -85,11 +107,34 @@ export const usePrint = () => {
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border: 3px solid #000;
             padding: 0.25in;
             background: white;
             position: relative;
             break-inside: avoid;
+          }
+
+          .child-sticker {
+            border: 4px solid #3b82f6;
+          }
+
+          .parent-sticker {
+            border: 4px solid #10b981;
+          }
+
+          .sticker-type {
+            font-size: 9pt;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 0.1in;
+            text-transform: uppercase;
+          }
+
+          .child-sticker .sticker-type {
+            color: #3b82f6;
+          }
+
+          .parent-sticker .sticker-type {
+            color: #10b981;
           }
 
           .church-name {
@@ -136,12 +181,36 @@ export const usePrint = () => {
             margin-top: 0.1in;
           }
 
-          .special-info {
-            font-size: 9pt;
+          .age-info {
+            font-size: 11pt;
             text-align: center;
-            color: #d00;
+            color: #333;
             margin-top: 0.1in;
+            font-weight: 600;
+          }
+
+          .pickup-label {
+            font-size: 16pt;
             font-weight: bold;
+            text-align: center;
+            margin-bottom: 0.1in;
+            color: #333;
+          }
+
+          .pickup-child-name {
+            font-size: 24pt;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 0.15in;
+            color: #000;
+          }
+
+          .keep-sticker {
+            font-size: 10pt;
+            text-align: center;
+            color: #555;
+            margin-top: 0.1in;
+            font-weight: 600;
           }
 
           @media print {

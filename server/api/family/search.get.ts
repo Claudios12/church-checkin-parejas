@@ -56,9 +56,7 @@ export default defineEventHandler(async (event) => {
           id: child.id,
           firstName: child.firstName,
           lastName: child.lastName,
-          birthDate: child.birthDate,
-          allergies: child.allergies,
-          specialNeeds: child.specialNeeds,
+          birthDate: child.birthDate.toISOString(),
         })),
       },
     }

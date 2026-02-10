@@ -39,9 +39,7 @@ model Child {
   id            String      @id @default(cuid())
   firstName     String
   lastName      String
-  birthDate     DateTime?
-  allergies     String?
-  specialNeeds  String?
+  birthDate     DateTime
   familyId      String
   createdAt     DateTime    @default(now())
 
