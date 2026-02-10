@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Family {
+  id          String    @id @default(cuid())
+  parentId    String    @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  parents     Parent[]
+  children    Child[]
+  checkIns    CheckIn[]
+
+  @@index([parentId])
+}
+
+model Parent {
+  id         String   @id @default(cuid())
+  firstName  String
+  lastName   String
+  familyId   String
+  createdAt  DateTime @default(now())
+
+  family     Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@index([familyId])
+}
+
+model Child {
+  id            String      @id @default(cuid())
+  firstName     String
+  lastName      String
+  birthDate     DateTime?
+  allergies     String?
+  specialNeeds  String?
+  familyId      String
+  createdAt     DateTime    @default(now())
+
+  family        Family      @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  checkIns      CheckIn[]
+
+  @@index([familyId])
+}
+
+model CheckIn {
+  id              String   @id @default(cuid())
+  checkInNumber   String   @unique
+  checkInTime     DateTime @default(now())
+  checkOutTime    DateTime?
+  familyId        String
+  childId         String
+  notes           String?
+
+  family          Family   @relation(fields: [familyId], references: [id])
+  child           Child    @relation(fields: [childId], references: [id])
+
+  @@index([familyId])
+  @@index([childId])
+  @@index([checkInNumber])
+  @@index([checkInTime])
+}
