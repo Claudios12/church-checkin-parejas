@@ -88,7 +88,7 @@ La aplicación estará disponible en: http://localhost:3000
 
 2. Iniciar el servidor:
    ```bash
-   bun run start
+   bun run preview
    ```
 
 ## 🔧 Configuración
