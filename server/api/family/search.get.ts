@@ -1,4 +1,5 @@
 import prisma from '../../utils/prisma'
+import { normalizeParentId, isValidParentId } from '../../utils/normalizeId'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -8,22 +9,25 @@ export default defineEventHandler(async (event) => {
     if (!parentId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'La cédula es requerida',
+        statusMessage: 'El documento de identidad es requerido',
       })
     }
 
-    // Validate parentId is exactly 10 digits
-    if (!/^\d{10}$/.test(parentId)) {
+    // Normalize the parent ID (remove spaces, dots, hyphens, etc.)
+    const normalizedId = normalizeParentId(parentId)
+
+    // Validate normalized ID format
+    if (!isValidParentId(normalizedId)) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'La cédula debe tener exactamente 10 dígitos',
+        statusMessage: 'El documento de identidad debe tener entre 6 y 15 caracteres alfanuméricos',
       })
     }
 
-    // Search for family by parent ID
+    // Search for family by normalized parent ID
     const family = await prisma.family.findUnique({
       where: {
-        parentId,
+        parentId: normalizedId,
       },
       include: {
         parents: true,

@@ -6,8 +6,8 @@
       <UiInput
         v-model="localData.parentId"
         type="text"
-        label="Cédula de Los Padres (10 dígitos)"
-        placeholder="1007557871"
+        label="Documento de Identidad del Padre/Madre"
+        placeholder="Ej: 1007557879"
         required
         :disabled="disabled"
         @blur="handleIdBlur"

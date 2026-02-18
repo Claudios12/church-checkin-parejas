@@ -1,5 +1,6 @@
 import prisma from '../utils/prisma'
 import { generateSecurityCode } from '../utils/securityCode'
+import { normalizeParentId, isValidParentId } from '../utils/normalizeId'
 
 interface ParentInput {
   firstName: string
@@ -27,21 +28,24 @@ export default defineEventHandler(async (event) => {
     if (!body.parentId || !body.parents?.length || !body.children?.length) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Faltan campos requeridos: cédula, padres o niños',
+        statusMessage: 'Faltan campos requeridos: documento de identidad, padres o niños',
       })
     }
 
-    // Validate parentId is exactly 10 digits
-    if (!/^\d{10}$/.test(body.parentId)) {
+    // Normalize the parent ID
+    const normalizedId = normalizeParentId(body.parentId)
+
+    // Validate normalized ID format
+    if (!isValidParentId(normalizedId)) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'La cédula debe tener exactamente 10 dígitos',
+        statusMessage: 'El documento de identidad debe tener entre 6 y 15 caracteres alfanuméricos',
       })
     }
 
     // Step 1: Find or create family
     let family = await prisma.family.findUnique({
-      where: { parentId: body.parentId },
+      where: { parentId: normalizedId },
       include: {
         parents: true,
         children: true,
@@ -49,10 +53,10 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!family) {
-      // Create new family
+      // Create new family with normalized ID
       family = await prisma.family.create({
         data: {
-          parentId: body.parentId,
+          parentId: normalizedId,
         },
         include: {
           parents: true,

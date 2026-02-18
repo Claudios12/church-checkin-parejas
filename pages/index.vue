@@ -22,6 +22,7 @@
       <StickerPreview
         v-else
         :check-ins="completedCheckIns"
+        :is-developer="isDeveloperCheckIn"
         @done="handlePreviewDone"
         @reset="handleReset"
       />
@@ -30,7 +31,7 @@
     <!-- Footer -->
     <footer class="text-center mt-12 text-gray-400">
       <p class="text-sm">
-        ¿Necesitas ayuda? Pregunta a un voluntario en la recepción
+        ¿Necesitas ayuda? Pregunta a un voluntario de Cima Iglesia Kids
       </p>
     </footer>
   </div>
@@ -44,10 +45,12 @@ const churchName = config.public.churchName
 
 const showPreview = ref(false)
 const completedCheckIns = ref<CheckInResult[]>([])
+const isDeveloperCheckIn = ref(false)
 const checkInFormRef = ref<any>(null)
 
-const handleCheckInSubmit = (checkIns: CheckInResult[]) => {
+const handleCheckInSubmit = (checkIns: CheckInResult[], isDeveloper = false) => {
   completedCheckIns.value = checkIns
+  isDeveloperCheckIn.value = isDeveloper
   showPreview.value = true
 }
 
@@ -60,6 +63,7 @@ const handleReset = () => {
   // Reset everything
   showPreview.value = false
   completedCheckIns.value = []
+  isDeveloperCheckIn.value = false
 
   // Reset the form
   if (checkInFormRef.value) {

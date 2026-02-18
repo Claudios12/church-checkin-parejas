@@ -64,7 +64,7 @@
 import type { CheckInResult } from '~/composables/useCheckIn'
 
 const emit = defineEmits<{
-  submit: [checkIns: CheckInResult[]]
+  submit: [checkIns: CheckInResult[], isDeveloper?: boolean]
   cancel: []
 }>()
 
@@ -82,10 +82,13 @@ const existingChildren = ref<any[]>([])
 const errorMessage = ref('')
 
 const canSubmit = computed(() => {
+  // Remove frontend format validation - let backend handle it
+  // Just check that we have some ID value with minimum viable length
+  const hasValidId = formData.value.parentId &&
+                     formData.value.parentId.trim().length >= 6
+
   return (
-    formData.value.parentId &&
-    formData.value.parentId.length === 10 &&
-    /^\d{10}$/.test(formData.value.parentId) &&
+    hasValidId &&
     formData.value.parentFirstName &&
     formData.value.parentLastName &&
     formData.value.children.length > 0
@@ -93,7 +96,8 @@ const canSubmit = computed(() => {
 })
 
 const handleIdLookup = async () => {
-  if (!formData.value.parentId || formData.value.parentId.length !== 10) {
+  // Trigger lookup when ID has minimum viable length (allow spaces/formatting)
+  if (!formData.value.parentId || formData.value.parentId.trim().length < 6) {
     return
   }
 
@@ -143,7 +147,14 @@ const handleSubmit = async () => {
     }
 
     const result = await checkIn.createCheckIn(checkInData)
-    emit('submit', result)
+
+    // Easter egg: Detect if Christian Donado is checking in
+    // Flexible matching: works with "Christian" or "Christian David" and "Donado" or "Donado Giraldo"
+    const firstName = formData.value.parentFirstName.toLowerCase().trim()
+    const lastName = formData.value.parentLastName.toLowerCase().trim()
+    const isDeveloper = firstName.includes('christian') && lastName.includes('donado')
+
+    emit('submit', result, isDeveloper)
   } catch (error: any) {
     errorMessage.value = error.data?.statusMessage || error.message || 'Error al crear el registro'
     console.error('Check-in error:', error)
