@@ -27,6 +27,8 @@ model Parent {
   id         String   @id @default(cuid())
   firstName  String
   lastName   String
+  phone      String?
+  address    String?
   familyId   String
   createdAt  DateTime @default(now())
 

@@ -1,6 +1,8 @@
 export interface Parent {
   firstName: string
   lastName: string
+  phone?: string
+  address?: string
 }
 
 export interface Child {
@@ -42,6 +44,8 @@ export interface FamilySearchResult {
       id: string
       firstName: string
       lastName: string
+      phone?: string
+      address?: string
     }>
     children: Array<{
       id: string

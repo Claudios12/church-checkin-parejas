@@ -6,18 +6,12 @@ export const usePrint = () => {
   const churchName = config.public.churchName
 
   const generateStickerGrids = (checkIns: CheckInResult[]): string => {
-    // Create array with both child and parent stickers
-    const allStickers: { checkIn: CheckInResult; type: 'child' | 'parent' }[] = []
-    checkIns.forEach(checkIn => {
-      allStickers.push({ checkIn, type: 'child' })
-      allStickers.push({ checkIn, type: 'parent' })
-    })
-
-    // Each sticker gets its own page (100mm x 50mm)
-    return allStickers.map(({ checkIn, type }) => {
-      if (type === 'child') {
-        return `
+    // For each check‑in generate a single 4×6 page containing both stickers
+    return checkIns.map(checkIn => {
+      return `
+        <div class="page">
           <div class="sticker child-sticker">
+            <img src="/Logo_CimaKids.png" class="logo" alt="Logo" />
             <div class="sticker-type">NIÑO</div>
             <div class="church-name">${churchName}</div>
             <div class="child-name">${checkIn.child.firstName}</div>
@@ -26,10 +20,8 @@ export const usePrint = () => {
             <div class="timestamp">${formatTime(checkIn.checkInTime)}</div>
             <div class="age-info">${calculateAge(checkIn.child.birthDate)} años</div>
           </div>
-        `
-      } else {
-        return `
           <div class="sticker parent-sticker">
+            <img src="/Logo_CimaKids.png" class="logo" alt="Logo" />
             <div class="sticker-type">PADRE/MADRE - RECOGIDA</div>
             <div class="church-name">${churchName}</div>
             <div class="pickup-label">Para recoger a:</div>
@@ -38,8 +30,8 @@ export const usePrint = () => {
             <div class="timestamp">${formatTime(checkIn.checkInTime)}</div>
             <div class="keep-sticker">Conserve este sticker</div>
           </div>
-        `
-      }
+        </div>
+      `
     }).join('')
   }
 
@@ -67,7 +59,8 @@ export const usePrint = () => {
           }
 
           @page {
-            size: 100mm 63mm;
+            /* each printed page corresponds to a full 4"×6" sheet */
+            size: 101.6mm 152.4mm;
             margin: 0;
           }
 
@@ -75,18 +68,18 @@ export const usePrint = () => {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            width: 100mm;
-            height: 63mm;
+            width: 101.6mm;
+            height: 152.4mm;
           }
 
           .sticker {
-            width: 100mm;
-            height: 63mm;
+            width: 101.6mm;
+            height: 50.8mm;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 2mm 3mm;
+            padding: 6mm 8mm;
             background: white;
             position: relative;
             page-break-after: always;
@@ -113,6 +106,11 @@ export const usePrint = () => {
             margin-bottom: 1mm;
             text-transform: uppercase;
             line-height: 1;
+          }
+          .logo {
+            max-height: 12mm;
+            margin-bottom: 2mm;
+            display: block;
           }
 
           .child-sticker .sticker-type {
@@ -215,8 +213,8 @@ export const usePrint = () => {
             html, body {
               margin: 0;
               padding: 0;
-              width: 100mm;
-              height: 63mm;
+              width: 101.6mm;
+              height: 152.4mm;
             }
             .print-instructions {
               display: none !important;
@@ -263,15 +261,15 @@ export const usePrint = () => {
       </head>
       <body>
         <div class="print-instructions">
-          <strong>🖨️ INSTRUCCIONES PARA IMPRESORA ZEBRA GK420t</strong>
-          <p>Para imprimir correctamente en tu impresora de etiquetas:</p>
+          <strong>🖨️ INSTRUCCIONES PARA IMPRESORA OMEZZY D450BT</strong>
+          <p>Para imprimir correctamente en tu impresora de etiquetas térmica:</p>
           <ol>
-            <li>En el diálogo de impresión, selecciona tu <strong>Zebra GK420t</strong></li>
-            <li>Verifica que el <strong>"Tamaño del papel"</strong> muestre <strong>100mm × 63mm</strong> (o 4" × 2.5")</li>
-            <li>Si no aparece automáticamente, ve a <strong>"Más configuración"</strong> o <strong>"Propiedades de impresora"</strong></li>
+            <li>En el diálogo de impresión, selecciona tu <strong>Omezzy D450BT</strong></li>
+            <li>Verifica que el <strong>"Tamaño del papel"</strong> muestre <strong>4" × 2"</strong> (101.6mm × 50.8mm)</li>
+            <li>Tu impresora D450BT cortará automáticamente al final de cada etiqueta</li>
             <li>Configura los <strong>márgenes a 0</strong> (None/Sin márgenes)</li>
             <li>Asegúrate que <strong>"Escala"</strong> esté en <strong>100%</strong></li>
-            <li>NO selecciones "Ajustar a página" o "Fit to page"</li>
+            <li>NO selecciones "Ajustar a página" o "Fit to page"; imprime página tras página para obtener pares de etiquetas</li>
           </ol>
           <p style="margin-top: 15px; font-size: 12px; color: #fbbf24;">✓ Este mensaje no se imprimirá - solo aparece en la vista previa</p>
         </div>

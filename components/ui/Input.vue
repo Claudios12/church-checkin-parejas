@@ -27,7 +27,7 @@ let idCounter = 0
 
 interface Props {
   id?: string
-  type?: 'text' | 'tel' | 'email' | 'date' | 'number'
+  type?: 'text' | 'tel' | 'email' | 'date' | 'number' | 'password'
   modelValue: string | number
   label?: string
   placeholder?: string

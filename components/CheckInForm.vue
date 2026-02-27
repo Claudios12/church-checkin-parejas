@@ -74,6 +74,8 @@ const formData = ref({
   parentId: '',
   parentFirstName: '',
   parentLastName: '',
+  parentPhone: '',
+  parentAddress: '',
   children: [] as any[],
 })
 
@@ -113,6 +115,8 @@ const handleIdLookup = async () => {
         const parent = result.family.parents[0]
         formData.value.parentFirstName = parent.firstName
         formData.value.parentLastName = parent.lastName
+        formData.value.parentPhone = (parent as any).phone || ''
+        formData.value.parentAddress = (parent as any).address || ''
       }
     } else {
       familyFound.value = false
@@ -141,6 +145,8 @@ const handleSubmit = async () => {
         {
           firstName: formData.value.parentFirstName,
           lastName: formData.value.parentLastName,
+            phone: formData.value.parentPhone,
+            address: formData.value.parentAddress,
         },
       ],
       children: formData.value.children,

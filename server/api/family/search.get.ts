@@ -55,6 +55,8 @@ export default defineEventHandler(async (event) => {
           id: parent.id,
           firstName: parent.firstName,
           lastName: parent.lastName,
+          phone: (parent as any).phone || null,
+          address: (parent as any).address || null,
         })),
         children: family.children.map((child) => ({
           id: child.id,

@@ -5,6 +5,8 @@ import { normalizeParentId, isValidParentId } from '../utils/normalizeId'
 interface ParentInput {
   firstName: string
   lastName: string
+  phone?: string
+  address?: string
 }
 
 interface ChildInput {
@@ -76,6 +78,8 @@ export default defineEventHandler(async (event) => {
         data: {
           firstName: parent.firstName,
           lastName: parent.lastName,
+          phone: parent.phone || null,
+          address: parent.address || null,
           familyId: family.id,
         },
       })

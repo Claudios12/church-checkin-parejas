@@ -1,10 +1,9 @@
 <template>
   <div class="min-h-screen bg-black py-8 px-4">
-    <!-- Header -->
+    <!-- Header: show logo in place of text -->
     <header class="text-center mb-8">
-      <h1 class="text-5xl font-bold text-white mb-2">
-        {{ churchName }}
-      </h1>
+      <img src="/Logo_CimaKids.png" alt="{{ churchName }}" class="mx-auto h-24 mb-4" />
+      <!-- optional title omitted since logo conveys branding -->
       <p class="text-2xl text-gray-300">Registro de Niños</p>
     </header>
 

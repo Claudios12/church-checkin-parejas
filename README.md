@@ -104,6 +104,10 @@ CHURCH_NAME="Cima Iglesia"
 
 # Segundos antes de reiniciar automáticamente
 AUTO_RESET_SECONDS=5
+
+# Contraseña para acceder a la sección de administrador
+# si no se establece, el valor por defecto es "admin"
+ADMIN_PASSWORD="miSecretoAquí"
 ```
 
 ## 📖 Cómo Usar
@@ -116,6 +120,17 @@ AUTO_RESET_SECONDS=5
 4. **Agregar Nuevos Niños:** Si es necesario, usar el botón "+ Agregar Otro Niño"
 5. **Registrar:** Hacer clic en "Registrar X Niños"
 6. **Imprimir Etiquetas:** Imprimir las etiquetas de seguridad
+
+### Para Administradores
+
+1. Navegar a la ruta `/admin` en el navegador.
+2. Introducir la contraseña de administrador. Por defecto es `admin`,
+   pero puedes cambiarla configurando la variable de entorno `ADMIN_PASSWORD`.
+3. Una vez dentro, buscar niños por nombre.
+4. Hacer clic en un resultado para ver los detalles completos del niño,
+   incluyendo su familia y el historial de registros.
+5. Utilizar el botón "Log out" para cerrar sesión.
+
 
 ### Información de la Etiqueta
 

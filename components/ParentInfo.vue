@@ -13,7 +13,7 @@
         @blur="handleIdBlur"
       />
 
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <UiInput
           v-model="localData.parentFirstName"
           type="text"
@@ -32,6 +32,23 @@
           :disabled="disabled"
         />
       </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+        <UiInput
+          v-model="localData.parentPhone"
+          type="tel"
+          label="Teléfono"
+          placeholder="3001234567"
+          :disabled="disabled"
+        />
+
+        <UiInput
+          v-model="localData.parentAddress"
+          type="text"
+          label="Dirección"
+          placeholder="Calle 123 #45-67"
+          :disabled="disabled"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -41,6 +58,8 @@ interface Props {
   parentId?: string
   parentFirstName?: string
   parentLastName?: string
+  parentPhone?: string
+  parentAddress?: string
   disabled?: boolean
 }
 
@@ -48,6 +67,8 @@ const props = withDefaults(defineProps<Props>(), {
   parentId: '',
   parentFirstName: '',
   parentLastName: '',
+  parentPhone: '',
+  parentAddress: '',
   disabled: false,
 })
 
@@ -55,6 +76,8 @@ const emit = defineEmits<{
   'update:parentId': [value: string]
   'update:parentFirstName': [value: string]
   'update:parentLastName': [value: string]
+  'update:parentPhone': [value: string]
+  'update:parentAddress': [value: string]
   'idBlur': [id: string]
 }>()
 
@@ -62,6 +85,8 @@ const localData = ref({
   parentId: props.parentId,
   parentFirstName: props.parentFirstName,
   parentLastName: props.parentLastName,
+  parentPhone: props.parentPhone,
+  parentAddress: props.parentAddress,
 })
 
 // Watch for external prop changes
@@ -83,6 +108,18 @@ watch(() => props.parentLastName, (val) => {
   }
 })
 
+watch(() => props.parentPhone, (val) => {
+  if (localData.value.parentPhone !== val) {
+    localData.value.parentPhone = val
+  }
+})
+
+watch(() => props.parentAddress, (val) => {
+  if (localData.value.parentAddress !== val) {
+    localData.value.parentAddress = val
+  }
+})
+
 // Emit changes only if different from props
 watch(() => localData.value.parentId, (val) => {
   if (val !== props.parentId) {
@@ -99,6 +136,18 @@ watch(() => localData.value.parentFirstName, (val) => {
 watch(() => localData.value.parentLastName, (val) => {
   if (val !== props.parentLastName) {
     emit('update:parentLastName', val)
+  }
+})
+
+watch(() => localData.value.parentPhone, (val) => {
+  if (val !== props.parentPhone) {
+    emit('update:parentPhone', val)
+  }
+})
+
+watch(() => localData.value.parentAddress, (val) => {
+  if (val !== props.parentAddress) {
+    emit('update:parentAddress', val)
   }
 })
 

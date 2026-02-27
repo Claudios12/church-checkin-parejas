@@ -1,6 +1,10 @@
 <template>
   <div class="sticker-preview max-w-6xl mx-auto">
     <div class="bg-gray-900 rounded-lg shadow-lg p-8 border border-gray-700">
+      <!-- logo -->
+      <div class="text-center mb-4">
+        <img src="/Logo_CimaKids.png" alt="Logo" class="inline-block h-20 logo" />
+      </div>
       <h2 class="text-3xl font-bold mb-6 text-center text-white">¡Registro Completado!</h2>
 
       <!-- Developer Easter Egg -->
@@ -25,6 +29,7 @@
           <!-- Child Sticker -->
           <div class="sticker-card border-4 border-blue-500 rounded-lg p-6 bg-white">
             <div class="text-center">
+              <img src="/Logo_CimaKids.png" alt="Logo" class="mx-auto h-12 mb-2" />
               <div class="sticker-type text-xs font-bold mb-2 text-blue-600 uppercase">
                 NIÑO
               </div>
@@ -52,6 +57,7 @@
           <!-- Parent Sticker -->
           <div class="sticker-card border-4 border-green-500 rounded-lg p-6 bg-white">
             <div class="text-center">
+              <img src="/Logo_CimaKids.png" alt="Logo" class="mx-auto h-12 mb-2" />
               <div class="sticker-type text-xs font-bold mb-2 text-green-600 uppercase">
                 PADRE/MADRE - RECOGIDA
               </div>
@@ -223,7 +229,7 @@ onUnmounted(() => {
 
 <style scoped>
 .sticker-card {
-  aspect-ratio: 100 / 63;
+  aspect-ratio: 4 / 6;
   display: flex;
   flex-direction: column;
   justify-content: center;
