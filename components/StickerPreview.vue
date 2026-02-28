@@ -95,20 +95,41 @@
       </div>
 
       <!-- Action Buttons -->
-      <div class="flex gap-4">
+      <div class="flex flex-col gap-3">
+        <!-- Tablet: print both stickers together -->
         <UiButton
           variant="primary"
           size="large"
-          class="flex-1"
+          class="w-full"
           @click="handlePrint"
         >
-          🖨 Imprimir Etiquetas
+          🖨 Imprimir Etiquetas (Tablet)
         </UiButton>
+
+        <!-- Mobile: download each sticker separately at exact 4"×2" size -->
+        <div class="flex gap-3">
+          <UiButton
+            variant="primary"
+            size="large"
+            class="flex-1"
+            @click="handleDownloadChild"
+          >
+            📥 Etiqueta Niño
+          </UiButton>
+          <UiButton
+            variant="primary"
+            size="large"
+            class="flex-1"
+            @click="handleDownloadParent"
+          >
+            📥 Etiqueta Padre
+          </UiButton>
+        </div>
 
         <UiButton
           variant="secondary"
           size="large"
-          class="flex-1"
+          class="w-full"
           @click="handleDone"
         >
           Listo
@@ -156,7 +177,7 @@ const config = useRuntimeConfig()
 const churchName = config.public.churchName
 const autoResetSeconds = parseInt(config.public.autoResetSeconds)
 
-const { printStickers, formatTime, formatDate } = usePrint()
+const { printStickers, downloadChildStickers, downloadParentStickers, formatTime, formatDate } = usePrint()
 
 // Easter egg celebration
 const showCelebration = ref(false)
@@ -174,7 +195,7 @@ onMounted(() => {
 })
 
 // Generate random confetti positions and animations
-const getConfettiStyle = (index: number) => {
+const getConfettiStyle = (_index: number) => {
   const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
   return {
     left: `${Math.random() * 100}%`,
@@ -189,6 +210,14 @@ let countdownInterval: ReturnType<typeof setInterval> | null = null
 
 const handlePrint = () => {
   printStickers(props.checkIns)
+}
+
+const handleDownloadChild = () => {
+  downloadChildStickers(props.checkIns)
+}
+
+const handleDownloadParent = () => {
+  downloadParentStickers(props.checkIns)
 }
 
 const handleDone = () => {

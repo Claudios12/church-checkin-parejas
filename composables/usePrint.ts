@@ -5,92 +5,142 @@ export const usePrint = () => {
   const config = useRuntimeConfig()
   const churchName = config.public.churchName
 
+  const stickerCSS = `
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 101.6mm; margin: 0; padding: 0; background: white; font-family: Arial, sans-serif; }
+    .sticker {
+      width: 101.6mm;
+      height: 50.8mm;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6mm 8mm;
+      background: white;
+      page-break-after: always;
+      page-break-inside: avoid;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    .sticker:last-child { page-break-after: avoid; }
+    .child-sticker { border: 4px solid #3b82f6; }
+    .parent-sticker { border: 4px solid #10b981; }
+    .logo { max-height: 12mm; margin-bottom: 2mm; display: block; }
+    .sticker-type { font-size: 6pt; font-weight: bold; text-align: center; margin-bottom: 1mm; text-transform: uppercase; line-height: 1; }
+    .child-sticker .sticker-type { color: #3b82f6; }
+    .parent-sticker .sticker-type { color: #10b981; }
+    .church-name { font-size: 8pt; font-weight: bold; margin-bottom: 1mm; text-align: center; color: #333; line-height: 1; }
+    .child-name { font-size: 18pt; font-weight: bold; text-align: center; margin-bottom: 1.5mm; line-height: 1; color: #000; }
+    .family-name { font-size: 12pt; text-align: center; margin-bottom: 2mm; color: #555; line-height: 1; }
+    .timestamp { font-size: 6pt; text-align: center; color: #666; margin-top: 0.5mm; line-height: 1; }
+    .age-info { font-size: 6pt; text-align: center; color: #333; margin-top: 1mm; font-weight: 600; line-height: 1; }
+    .pickup-label { font-size: 10pt; font-weight: bold; text-align: center; margin-bottom: 1.5mm; color: #333; line-height: 1; }
+    .pickup-child-name { font-size: 16pt; font-weight: bold; text-align: center; margin-bottom: 2mm; color: #000; line-height: 1; }
+    .keep-sticker { font-size: 6pt; text-align: center; color: #555; margin-top: 1mm; font-weight: 600; line-height: 1; }
+  `
+
+  const buildStickerPage = (title: string, body: string) => `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>${title}</title>
+      <style>
+        @page { size: 101.6mm 50.8mm; margin: 0; }
+        ${stickerCSS}
+      </style>
+    </head>
+    <body>${body}</body>
+    </html>
+  `
+
   const generateStickerGrids = (checkIns: CheckInResult[]): string => {
-    return checkIns.map(checkIn => {
-      return `
-        <div class="page">
-          <div class="sticker child-sticker">
-            <img src="/Logo_CimaKids.png" class="logo" alt="Logo" />
-            <div class="sticker-type">NIÑO</div>
-            <div class="church-name">${churchName}</div>
-            <div class="child-name">${checkIn.child.firstName}</div>
-            <div class="family-name">${checkIn.child.lastName}</div>
-            <div class="timestamp">${formatDate(checkIn.checkInTime)}</div>
-            <div class="timestamp">${formatTime(checkIn.checkInTime)}</div>
-            <div class="age-info">${calculateAge(checkIn.child.birthDate)} años</div>
-          </div>
-          <div class="sticker parent-sticker">
-            <img src="/Logo_CimaKids.png" class="logo" alt="Logo" />
-            <div class="sticker-type">PADRE/MADRE - RECOGIDA</div>
-            <div class="church-name">${churchName}</div>
-            <div class="pickup-label">Para recoger a:</div>
-            <div class="pickup-child-name">${checkIn.child.firstName}</div>
-            <div class="timestamp">${formatDate(checkIn.checkInTime)}</div>
-            <div class="timestamp">${formatTime(checkIn.checkInTime)}</div>
-            <div class="keep-sticker">Conserve este sticker</div>
-          </div>
+    return checkIns.map(checkIn => `
+      <div class="page">
+        <div class="sticker child-sticker">
+          <img src="/Logo_CimaKids.png" class="logo" alt="Logo" />
+          <div class="sticker-type">NIÑO</div>
+          <div class="church-name">${churchName}</div>
+          <div class="child-name">${checkIn.child.firstName}</div>
+          <div class="family-name">${checkIn.child.lastName}</div>
+          <div class="timestamp">${formatDate(checkIn.checkInTime)}</div>
+          <div class="timestamp">${formatTime(checkIn.checkInTime)}</div>
+          <div class="age-info">${calculateAge(checkIn.child.birthDate)} años</div>
         </div>
-      `
-    }).join('')
+        <div class="sticker parent-sticker">
+          <img src="/Logo_CimaKids.png" class="logo" alt="Logo" />
+          <div class="sticker-type">PADRE/MADRE - RECOGIDA</div>
+          <div class="church-name">${churchName}</div>
+          <div class="pickup-label">Para recoger a:</div>
+          <div class="pickup-child-name">${checkIn.child.firstName}</div>
+          <div class="timestamp">${formatDate(checkIn.checkInTime)}</div>
+          <div class="timestamp">${formatTime(checkIn.checkInTime)}</div>
+          <div class="keep-sticker">Conserve este sticker</div>
+        </div>
+      </div>
+    `).join('')
   }
 
+  // Opens a blob URL in a new tab — works on iOS/Android without popup blocker issues
+  const openBlobPage = (html: string) => {
+    const blob = new Blob([html], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
+    setTimeout(() => URL.revokeObjectURL(url), 10000)
+  }
+
+  // Download child stickers only — one 4"×2" page per child
+  const downloadChildStickers = (checkIns: CheckInResult[]) => {
+    const body = checkIns.map(checkIn => `
+      <div class="sticker child-sticker">
+        <img src="/Logo_CimaKids.png" class="logo" alt="Logo" />
+        <div class="sticker-type">NIÑO</div>
+        <div class="church-name">${churchName}</div>
+        <div class="child-name">${checkIn.child.firstName}</div>
+        <div class="family-name">${checkIn.child.lastName}</div>
+        <div class="timestamp">${formatDate(checkIn.checkInTime)}</div>
+        <div class="timestamp">${formatTime(checkIn.checkInTime)}</div>
+        <div class="age-info">${calculateAge(checkIn.child.birthDate)} años</div>
+      </div>
+    `).join('')
+    openBlobPage(buildStickerPage('Etiqueta Niño', body))
+  }
+
+  // Download parent stickers only — one 4"×2" page per child
+  const downloadParentStickers = (checkIns: CheckInResult[]) => {
+    const body = checkIns.map(checkIn => `
+      <div class="sticker parent-sticker">
+        <img src="/Logo_CimaKids.png" class="logo" alt="Logo" />
+        <div class="sticker-type">PADRE/MADRE - RECOGIDA</div>
+        <div class="church-name">${churchName}</div>
+        <div class="pickup-label">Para recoger a:</div>
+        <div class="pickup-child-name">${checkIn.child.firstName}</div>
+        <div class="timestamp">${formatDate(checkIn.checkInTime)}</div>
+        <div class="timestamp">${formatTime(checkIn.checkInTime)}</div>
+        <div class="keep-sticker">Conserve este sticker</div>
+      </div>
+    `).join('')
+    openBlobPage(buildStickerPage('Etiqueta Padre/Madre', body))
+  }
+
+  // Print both stickers together — used from the Windows tablet
   const printStickers = (checkIns: CheckInResult[]) => {
-    // Inject sticker content directly into the page
     const printContainer = document.createElement('div')
     printContainer.id = 'sticker-print-container'
     printContainer.innerHTML = generateStickerGrids(checkIns)
 
-    // Inject print styles
     const printStyle = document.createElement('style')
     printStyle.id = 'sticker-print-styles'
     printStyle.textContent = `
       #sticker-print-container { display: none; }
-
       @media print {
         body > *:not(#sticker-print-container) { display: none !important; }
         #sticker-print-container { display: block !important; }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        @page {
-          size: 101.6mm 152.4mm;
-          margin: 0;
-        }
-
-        .page {
-          width: 101.6mm;
-          page-break-after: always;
-          page-break-inside: avoid;
-        }
+        @page { size: 101.6mm 152.4mm; margin: 0; }
+        .page { width: 101.6mm; page-break-after: always; page-break-inside: avoid; }
         .page:last-child { page-break-after: avoid; }
-
-        .sticker {
-          width: 101.6mm;
-          height: 50.8mm;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 6mm 8mm;
-          background: white;
-          page-break-inside: avoid;
-          box-sizing: border-box;
-          overflow: hidden;
-        }
-        .child-sticker { border: 4px solid #3b82f6; }
-        .parent-sticker { border: 4px solid #10b981; }
-        .logo { max-height: 12mm; margin-bottom: 2mm; display: block; }
-        .sticker-type { font-size: 6pt; font-weight: bold; text-align: center; margin-bottom: 1mm; text-transform: uppercase; line-height: 1; }
-        .child-sticker .sticker-type { color: #3b82f6; }
-        .parent-sticker .sticker-type { color: #10b981; }
-        .church-name { font-size: 8pt; font-weight: bold; margin-bottom: 1mm; text-align: center; color: #333; line-height: 1; }
-        .child-name { font-size: 18pt; font-weight: bold; text-align: center; margin-bottom: 1.5mm; line-height: 1; color: #000; }
-        .family-name { font-size: 12pt; text-align: center; margin-bottom: 2mm; color: #555; line-height: 1; }
-        .timestamp { font-size: 6pt; text-align: center; color: #666; margin-top: 0.5mm; line-height: 1; }
-        .age-info { font-size: 6pt; text-align: center; color: #333; margin-top: 1mm; font-weight: 600; line-height: 1; }
-        .pickup-label { font-size: 10pt; font-weight: bold; text-align: center; margin-bottom: 1.5mm; color: #333; line-height: 1; }
-        .pickup-child-name { font-size: 16pt; font-weight: bold; text-align: center; margin-bottom: 2mm; color: #000; line-height: 1; }
-        .keep-sticker { font-size: 6pt; text-align: center; color: #555; margin-top: 1mm; font-weight: 600; line-height: 1; }
+        ${stickerCSS}
       }
     `
 
@@ -102,12 +152,8 @@ export const usePrint = () => {
       document.body.removeChild(printContainer)
     }
 
-    // Clean up after the print dialog closes
     window.addEventListener('afterprint', cleanup, { once: true })
-
-    setTimeout(() => {
-      window.print()
-    }, 100)
+    setTimeout(() => window.print(), 100)
   }
 
   const formatTime = (dateString: string): string => {
@@ -130,6 +176,8 @@ export const usePrint = () => {
 
   return {
     printStickers,
+    downloadChildStickers,
+    downloadParentStickers,
     formatTime,
     formatDate,
   }
