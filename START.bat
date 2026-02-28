@@ -23,6 +23,11 @@ if not exist ".output" (
     echo.
 )
 
+REM Set database path explicitly using absolute path to avoid any ambiguity
+set DATABASE_URL=file:%~dp0dev.db
+set NITRO_HOST=0.0.0.0
+set NITRO_PORT=3000
+
 echo Server starting...
 echo.
 echo  Access from this tablet:  http://localhost:3000
@@ -34,8 +39,6 @@ echo.
 
 start "" cmd /c "timeout /t 3 /nobreak >nul && start http://localhost:3000"
 
-set NITRO_HOST=0.0.0.0
-set NITRO_PORT=3000
 bun run preview
 
 pause

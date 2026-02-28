@@ -31,6 +31,9 @@ if not exist ".env" (
     echo.
 )
 
+REM Set DATABASE_URL explicitly with absolute path
+set DATABASE_URL=file:%~dp0dev.db
+
 echo [1/4] Installing dependencies...
 call bun install
 if errorlevel 1 (
@@ -40,12 +43,26 @@ if errorlevel 1 (
 )
 
 echo.
-echo [2/4] Setting up database...
+echo [2/4] Setting up database at: %~dp0dev.db
 call bunx prisma migrate deploy
 if errorlevel 1 (
-    echo WARNING: Migration had an issue. Trying generate...
-    call bunx prisma generate
+    echo Migration failed, trying db push as fallback...
+    call bunx prisma db push --accept-data-loss
+    if errorlevel 1 (
+        echo ERROR: Could not set up database.
+        pause
+        exit /b 1
+    )
 )
+
+REM Verify the database file was actually created
+if not exist "dev.db" (
+    echo ERROR: Database file was not created at %~dp0dev.db
+    echo Something went wrong with the database setup.
+    pause
+    exit /b 1
+)
+echo Database created successfully.
 
 echo.
 echo [3/4] Generating Prisma client...
