@@ -106,25 +106,15 @@
           🖨 Imprimir Etiquetas (Tablet)
         </UiButton>
 
-        <!-- Mobile: download each sticker separately at exact 4"×2" size -->
-        <div class="flex gap-3">
-          <UiButton
-            variant="primary"
-            size="large"
-            class="flex-1"
-            @click="handleDownloadChild"
-          >
-            📥 Etiqueta Niño
-          </UiButton>
-          <UiButton
-            variant="primary"
-            size="large"
-            class="flex-1"
-            @click="handleDownloadParent"
-          >
-            📥 Etiqueta Padre
-          </UiButton>
-        </div>
+        <!-- Mobile: open sticker page with logo embedded -->
+        <UiButton
+          variant="primary"
+          size="large"
+          class="w-full"
+          @click="handleDownload"
+        >
+          📱 Etiquetas para Móvil
+        </UiButton>
 
         <UiButton
           variant="secondary"
@@ -177,7 +167,7 @@ const config = useRuntimeConfig()
 const churchName = config.public.churchName
 const autoResetSeconds = parseInt(config.public.autoResetSeconds)
 
-const { printStickers, downloadChildStickers, downloadParentStickers, formatTime, formatDate } = usePrint()
+const { printStickers, downloadStickers, formatTime, formatDate } = usePrint()
 
 // Easter egg celebration
 const showCelebration = ref(false)
@@ -212,12 +202,8 @@ const handlePrint = () => {
   printStickers(props.checkIns)
 }
 
-const handleDownloadChild = () => {
-  downloadChildStickers(props.checkIns)
-}
-
-const handleDownloadParent = () => {
-  downloadParentStickers(props.checkIns)
+const handleDownload = () => {
+  downloadStickers(props.checkIns)
 }
 
 const handleDone = () => {

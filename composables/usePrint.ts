@@ -5,9 +5,24 @@ export const usePrint = () => {
   const config = useRuntimeConfig()
   const churchName = config.public.churchName
 
+  const getLogoBase64 = async (): Promise<string> => {
+    try {
+      const response = await fetch('/Logo_CimaKids.png')
+      const blob = await response.blob()
+      return new Promise((resolve) => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result as string)
+        reader.onerror = () => resolve('')
+        reader.readAsDataURL(blob)
+      })
+    } catch {
+      return ''
+    }
+  }
+
   const stickerCSS = `
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 101.6mm; margin: 0; padding: 0; background: white; font-family: Arial, sans-serif; }
+    body { font-family: Arial, sans-serif; background: white; }
     .sticker {
       width: 101.6mm;
       height: 50.8mm;
@@ -39,23 +54,138 @@ export const usePrint = () => {
     .keep-sticker { font-size: 6pt; text-align: center; color: #555; margin-top: 1mm; font-weight: 600; line-height: 1; }
   `
 
-  const buildStickerPage = (title: string, body: string) => `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>${title}</title>
-      <style>
-        @page { size: 101.6mm 50.8mm; margin: 0; }
-        ${stickerCSS}
-      </style>
-    </head>
-    <body>${body}</body>
-    </html>
-  `
+  const buildChildStickers = (checkIns: CheckInResult[], logo: string) =>
+    checkIns.map(checkIn => `
+      <div class="sticker child-sticker">
+        ${logo ? `<img src="${logo}" class="logo" alt="Logo" />` : ''}
+        <div class="sticker-type">NIÑO</div>
+        <div class="church-name">${churchName}</div>
+        <div class="child-name">${checkIn.child.firstName}</div>
+        <div class="family-name">${checkIn.child.lastName}</div>
+        <div class="timestamp">${formatDate(checkIn.checkInTime)}</div>
+        <div class="timestamp">${formatTime(checkIn.checkInTime)}</div>
+        <div class="age-info">${calculateAge(checkIn.child.birthDate)} años</div>
+      </div>
+    `).join('')
 
-  const generateStickerGrids = (checkIns: CheckInResult[]): string => {
-    return checkIns.map(checkIn => `
+  const buildParentStickers = (checkIns: CheckInResult[], logo: string) =>
+    checkIns.map(checkIn => `
+      <div class="sticker parent-sticker">
+        ${logo ? `<img src="${logo}" class="logo" alt="Logo" />` : ''}
+        <div class="sticker-type">PADRE/MADRE - RECOGIDA</div>
+        <div class="church-name">${churchName}</div>
+        <div class="pickup-label">Para recoger a:</div>
+        <div class="pickup-child-name">${checkIn.child.firstName}</div>
+        <div class="timestamp">${formatDate(checkIn.checkInTime)}</div>
+        <div class="timestamp">${formatTime(checkIn.checkInTime)}</div>
+        <div class="keep-sticker">Conserve este sticker</div>
+      </div>
+    `).join('')
+
+  // Opens a single page with both sticker types and two print buttons inside
+  const downloadStickers = async (checkIns: CheckInResult[]) => {
+    const logo = await getLogoBase64()
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Etiquetas - ${churchName}</title>
+        <style>
+          ${stickerCSS}
+
+          /* Screen layout */
+          @media screen {
+            body { background: #111; padding: 16px; }
+            .toolbar {
+              display: flex;
+              gap: 12px;
+              margin-bottom: 20px;
+              position: sticky;
+              top: 0;
+              background: #111;
+              padding: 12px 0;
+              z-index: 10;
+            }
+            .btn {
+              flex: 1;
+              padding: 14px;
+              font-size: 15px;
+              font-weight: bold;
+              border: none;
+              border-radius: 10px;
+              cursor: pointer;
+              color: white;
+            }
+            .btn-child { background: #3b82f6; }
+            .btn-parent { background: #10b981; }
+            .sticker { margin: 0 auto 12px; box-shadow: 0 2px 8px rgba(255,255,255,0.1); }
+            .section-label {
+              color: #aaa;
+              font-size: 11px;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              text-align: center;
+              margin: 20px 0 8px;
+              font-family: Arial, sans-serif;
+            }
+          }
+
+          /* Print: hide toolbar, show only selected type */
+          @media print {
+            @page { size: 101.6mm 50.8mm; margin: 0; }
+            .toolbar { display: none !important; }
+            .section-label { display: none !important; }
+            .child-section, .parent-section { display: block; }
+          }
+
+          body.print-child .parent-section { display: none !important; }
+          body.print-parent .child-section { display: none !important; }
+        </style>
+        <script>
+          function printChild() {
+            document.body.className = 'print-child';
+            window.print();
+          }
+          function printParent() {
+            document.body.className = 'print-parent';
+            window.print();
+          }
+          window.addEventListener('afterprint', function() {
+            document.body.className = '';
+          });
+        <\/script>
+      </head>
+      <body>
+        <div class="toolbar">
+          <button class="btn btn-child" onclick="printChild()">🖨 Imprimir Niño</button>
+          <button class="btn btn-parent" onclick="printParent()">🖨 Imprimir Padre</button>
+        </div>
+
+        <div class="child-section">
+          <div class="section-label">Etiquetas Niño</div>
+          ${buildChildStickers(checkIns, logo)}
+        </div>
+
+        <div class="parent-section">
+          <div class="section-label">Etiquetas Padre/Madre</div>
+          ${buildParentStickers(checkIns, logo)}
+        </div>
+      </body>
+      </html>
+    `
+
+    const blob = new Blob([html], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  // Print both stickers together — used from the Windows tablet
+  const printStickers = (checkIns: CheckInResult[]) => {
+    const generateStickerGrids = () => checkIns.map(checkIn => `
       <div class="page">
         <div class="sticker child-sticker">
           <img src="/Logo_CimaKids.png" class="logo" alt="Logo" />
@@ -79,55 +209,10 @@ export const usePrint = () => {
         </div>
       </div>
     `).join('')
-  }
 
-  // Opens a blob URL in a new tab — works on iOS/Android without popup blocker issues
-  const openBlobPage = (html: string) => {
-    const blob = new Blob([html], { type: 'text/html' })
-    const url = URL.createObjectURL(blob)
-    window.open(url, '_blank')
-    setTimeout(() => URL.revokeObjectURL(url), 10000)
-  }
-
-  // Download child stickers only — one 4"×2" page per child
-  const downloadChildStickers = (checkIns: CheckInResult[]) => {
-    const body = checkIns.map(checkIn => `
-      <div class="sticker child-sticker">
-        <img src="/Logo_CimaKids.png" class="logo" alt="Logo" />
-        <div class="sticker-type">NIÑO</div>
-        <div class="church-name">${churchName}</div>
-        <div class="child-name">${checkIn.child.firstName}</div>
-        <div class="family-name">${checkIn.child.lastName}</div>
-        <div class="timestamp">${formatDate(checkIn.checkInTime)}</div>
-        <div class="timestamp">${formatTime(checkIn.checkInTime)}</div>
-        <div class="age-info">${calculateAge(checkIn.child.birthDate)} años</div>
-      </div>
-    `).join('')
-    openBlobPage(buildStickerPage('Etiqueta Niño', body))
-  }
-
-  // Download parent stickers only — one 4"×2" page per child
-  const downloadParentStickers = (checkIns: CheckInResult[]) => {
-    const body = checkIns.map(checkIn => `
-      <div class="sticker parent-sticker">
-        <img src="/Logo_CimaKids.png" class="logo" alt="Logo" />
-        <div class="sticker-type">PADRE/MADRE - RECOGIDA</div>
-        <div class="church-name">${churchName}</div>
-        <div class="pickup-label">Para recoger a:</div>
-        <div class="pickup-child-name">${checkIn.child.firstName}</div>
-        <div class="timestamp">${formatDate(checkIn.checkInTime)}</div>
-        <div class="timestamp">${formatTime(checkIn.checkInTime)}</div>
-        <div class="keep-sticker">Conserve este sticker</div>
-      </div>
-    `).join('')
-    openBlobPage(buildStickerPage('Etiqueta Padre/Madre', body))
-  }
-
-  // Print both stickers together — used from the Windows tablet
-  const printStickers = (checkIns: CheckInResult[]) => {
     const printContainer = document.createElement('div')
     printContainer.id = 'sticker-print-container'
-    printContainer.innerHTML = generateStickerGrids(checkIns)
+    printContainer.innerHTML = generateStickerGrids()
 
     const printStyle = document.createElement('style')
     printStyle.id = 'sticker-print-styles'
@@ -176,8 +261,7 @@ export const usePrint = () => {
 
   return {
     printStickers,
-    downloadChildStickers,
-    downloadParentStickers,
+    downloadStickers,
     formatTime,
     formatDate,
   }
