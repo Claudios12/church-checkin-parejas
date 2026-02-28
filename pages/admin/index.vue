@@ -146,6 +146,8 @@ const mergeFamilies = async (dup: any) => {
       body: {
         keepFamilyId: dup.families[0].familyId,
         removeFamilyId: dup.families[1].familyId,
+        keepChildId: dup.families[0].childId,
+        removeChildId: dup.families[1].childId,
       },
     })
     await loadDuplicates()

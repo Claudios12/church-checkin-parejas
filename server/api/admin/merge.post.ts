@@ -7,10 +7,23 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody(event)
-  const { keepFamilyId, removeFamilyId } = body
+  const { keepFamilyId, removeFamilyId, keepChildId, removeChildId } = body
 
-  if (!keepFamilyId || !removeFamilyId || keepFamilyId === removeFamilyId) {
-    throw createError({ statusCode: 400, statusMessage: 'Se requieren dos familias diferentes para unir' })
+  if (!keepFamilyId || !removeFamilyId) {
+    throw createError({ statusCode: 400, statusMessage: 'Se requieren dos familias para unir' })
+  }
+
+  // Same family — just merge the two duplicate children within it
+  if (keepFamilyId === removeFamilyId) {
+    if (!keepChildId || !removeChildId) {
+      throw createError({ statusCode: 400, statusMessage: 'Se requieren IDs de niños para unir duplicados en la misma familia' })
+    }
+    await prisma.checkIn.updateMany({
+      where: { childId: removeChildId },
+      data: { childId: keepChildId },
+    })
+    await prisma.child.delete({ where: { id: removeChildId } })
+    return { success: true }
   }
 
   const [keepFamily, removeFamily] = await Promise.all([
