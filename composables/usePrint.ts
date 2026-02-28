@@ -6,7 +6,6 @@ export const usePrint = () => {
   const churchName = config.public.churchName
 
   const generateStickerGrids = (checkIns: CheckInResult[]): string => {
-    // For each check‑in generate a single 4×6 page containing both stickers
     return checkIns.map(checkIn => {
       return `
         <div class="page">
@@ -36,259 +35,73 @@ export const usePrint = () => {
   }
 
   const printStickers = (checkIns: CheckInResult[]) => {
-    // Create a new window for printing
-    const printWindow = window.open('', '_blank')
+    // Inject sticker content directly into the page
+    const printContainer = document.createElement('div')
+    printContainer.id = 'sticker-print-container'
+    printContainer.innerHTML = generateStickerGrids(checkIns)
 
-    if (!printWindow) {
-      alert('Por favor permite ventanas emergentes para imprimir')
-      return
-    }
+    // Inject print styles
+    const printStyle = document.createElement('style')
+    printStyle.id = 'sticker-print-styles'
+    printStyle.textContent = `
+      #sticker-print-container { display: none; }
 
-    // Generate HTML for stickers
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Imprimir Etiquetas - ${churchName}</title>
-        <meta charset="UTF-8">
-        <style>
-          * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
+      @media print {
+        body > *:not(#sticker-print-container) { display: none !important; }
+        #sticker-print-container { display: block !important; }
 
-          @page {
-            /* each printed page corresponds to a full 4"×6" sheet */
-            size: 101.6mm 152.4mm;
-            margin: 0;
-          }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-          html, body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            width: 101.6mm;
-            height: 152.4mm;
-          }
+        @page {
+          size: 101.6mm 152.4mm;
+          margin: 0;
+        }
 
-          .sticker {
-            width: 101.6mm;
-            height: 50.8mm;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 6mm 8mm;
-            background: white;
-            position: relative;
-            page-break-after: always;
-            box-sizing: border-box;
-            overflow: hidden;
-          }
-
-          .sticker:last-child {
-            page-break-after: avoid;
-          }
-
-          .child-sticker {
-            border: 4px solid #3b82f6;
-          }
-
-          .parent-sticker {
-            border: 4px solid #10b981;
-          }
-
-          .sticker-type {
-            font-size: 6pt;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 1mm;
-            text-transform: uppercase;
-            line-height: 1;
-          }
-          .logo {
-            max-height: 12mm;
-            margin-bottom: 2mm;
-            display: block;
-          }
-
-          .child-sticker .sticker-type {
-            color: #3b82f6;
-          }
-
-          .parent-sticker .sticker-type {
-            color: #10b981;
-          }
-
-          .church-name {
-            font-size: 8pt;
-            font-weight: bold;
-            margin-bottom: 1mm;
-            text-align: center;
-            color: #333;
-            line-height: 1;
-          }
-
-          .child-name {
-            font-size: 18pt;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 1.5mm;
-            line-height: 1;
-            color: #000;
-          }
-
-          .family-name {
-            font-size: 12pt;
-            text-align: center;
-            margin-bottom: 2mm;
-            color: #555;
-            line-height: 1;
-          }
-
-          .security-code {
-            font-size: 22pt;
-            font-weight: bold;
-            letter-spacing: 0.1em;
-            text-align: center;
-            margin: 1.5mm 0;
-            color: #000;
-            background: #ffd700;
-            border: 2px solid #ffd700;
-            padding: 1mm 2mm;
-            border-radius: 3px;
-            line-height: 1;
-          }
-
-          .timestamp {
-            font-size: 6pt;
-            text-align: center;
-            color: #666;
-            margin-top: 0.5mm;
-            line-height: 1;
-          }
-
-          .age-info {
-            font-size: 6pt;
-            text-align: center;
-            color: #333;
-            margin-top: 1mm;
-            font-weight: 600;
-            line-height: 1;
-          }
-
-          .pickup-label {
-            font-size: 10pt;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 1.5mm;
-            color: #333;
-            line-height: 1;
-          }
-
-          .pickup-child-name {
-            font-size: 16pt;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 2mm;
-            color: #000;
-            line-height: 1;
-          }
-
-          .keep-sticker {
-            font-size: 6pt;
-            text-align: center;
-            color: #555;
-            margin-top: 1mm;
-            font-weight: 600;
-            line-height: 1;
-          }
-
-          .print-instructions {
-            display: none;
-          }
-
-          @media print {
-            html, body {
-              margin: 0;
-              padding: 0;
-              width: 101.6mm;
-              height: 152.4mm;
-            }
-            .print-instructions {
-              display: none !important;
-            }
-          }
-
-          @media screen {
-            html, body {
-              width: auto;
-              height: auto;
-              background: #f0f0f0;
-              padding: 0;
-            }
-            .print-instructions {
-              display: block;
-              background: #1e40af;
-              color: white;
-              padding: 20px;
-              margin: 0;
-              text-align: center;
-              font-size: 14px;
-              line-height: 1.6;
-            }
-            .print-instructions strong {
-              display: block;
-              font-size: 18px;
-              margin-bottom: 10px;
-              color: #fbbf24;
-            }
-            .print-instructions ol {
-              text-align: left;
-              display: inline-block;
-              margin: 10px auto;
-            }
-            .print-instructions li {
-              margin: 5px 0;
-            }
-            .sticker {
-              margin: 20px auto;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="print-instructions">
-          <strong>🖨️ INSTRUCCIONES PARA IMPRESORA OMEZZY D450BT</strong>
-          <p>Para imprimir correctamente en tu impresora de etiquetas térmica:</p>
-          <ol>
-            <li>En el diálogo de impresión, selecciona tu <strong>Omezzy D450BT</strong></li>
-            <li>Verifica que el <strong>"Tamaño del papel"</strong> muestre <strong>4" × 2"</strong> (101.6mm × 50.8mm)</li>
-            <li>Tu impresora D450BT cortará automáticamente al final de cada etiqueta</li>
-            <li>Configura los <strong>márgenes a 0</strong> (None/Sin márgenes)</li>
-            <li>Asegúrate que <strong>"Escala"</strong> esté en <strong>100%</strong></li>
-            <li>NO selecciones "Ajustar a página" o "Fit to page"; imprime página tras página para obtener pares de etiquetas</li>
-          </ol>
-          <p style="margin-top: 15px; font-size: 12px; color: #fbbf24;">✓ Este mensaje no se imprimirá - solo aparece en la vista previa</p>
-        </div>
-        ${generateStickerGrids(checkIns)}
-      </body>
-      </html>
+        .sticker {
+          width: 101.6mm;
+          height: 50.8mm;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 6mm 8mm;
+          background: white;
+          page-break-after: always;
+          box-sizing: border-box;
+          overflow: hidden;
+        }
+        .sticker:last-child { page-break-after: avoid; }
+        .child-sticker { border: 4px solid #3b82f6; }
+        .parent-sticker { border: 4px solid #10b981; }
+        .logo { max-height: 12mm; margin-bottom: 2mm; display: block; }
+        .sticker-type { font-size: 6pt; font-weight: bold; text-align: center; margin-bottom: 1mm; text-transform: uppercase; line-height: 1; }
+        .child-sticker .sticker-type { color: #3b82f6; }
+        .parent-sticker .sticker-type { color: #10b981; }
+        .church-name { font-size: 8pt; font-weight: bold; margin-bottom: 1mm; text-align: center; color: #333; line-height: 1; }
+        .child-name { font-size: 18pt; font-weight: bold; text-align: center; margin-bottom: 1.5mm; line-height: 1; color: #000; }
+        .family-name { font-size: 12pt; text-align: center; margin-bottom: 2mm; color: #555; line-height: 1; }
+        .timestamp { font-size: 6pt; text-align: center; color: #666; margin-top: 0.5mm; line-height: 1; }
+        .age-info { font-size: 6pt; text-align: center; color: #333; margin-top: 1mm; font-weight: 600; line-height: 1; }
+        .pickup-label { font-size: 10pt; font-weight: bold; text-align: center; margin-bottom: 1.5mm; color: #333; line-height: 1; }
+        .pickup-child-name { font-size: 16pt; font-weight: bold; text-align: center; margin-bottom: 2mm; color: #000; line-height: 1; }
+        .keep-sticker { font-size: 6pt; text-align: center; color: #555; margin-top: 1mm; font-weight: 600; line-height: 1; }
+      }
     `
 
-    printWindow.document.write(html)
-    printWindow.document.close()
+    document.head.appendChild(printStyle)
+    document.body.appendChild(printContainer)
 
-    // Wait for content to load, then print
-    printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.print()
-        // Don't auto-close so user can print again if needed
-        // printWindow.close()
-      }, 250)
+    const cleanup = () => {
+      document.head.removeChild(printStyle)
+      document.body.removeChild(printContainer)
     }
+
+    // Clean up after the print dialog closes
+    window.addEventListener('afterprint', cleanup, { once: true })
+
+    setTimeout(() => {
+      window.print()
+    }, 100)
   }
 
   const formatTime = (dateString: string): string => {
