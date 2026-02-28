@@ -57,6 +57,13 @@ export const usePrint = () => {
           margin: 0;
         }
 
+        .page {
+          width: 101.6mm;
+          page-break-after: always;
+          page-break-inside: avoid;
+        }
+        .page:last-child { page-break-after: avoid; }
+
         .sticker {
           width: 101.6mm;
           height: 50.8mm;
@@ -66,11 +73,10 @@ export const usePrint = () => {
           justify-content: center;
           padding: 6mm 8mm;
           background: white;
-          page-break-after: always;
+          page-break-inside: avoid;
           box-sizing: border-box;
           overflow: hidden;
         }
-        .sticker:last-child { page-break-after: avoid; }
         .child-sticker { border: 4px solid #3b82f6; }
         .parent-sticker { border: 4px solid #10b981; }
         .logo { max-height: 12mm; margin-bottom: 2mm; display: block; }
