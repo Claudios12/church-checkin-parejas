@@ -37,26 +37,26 @@ onMounted(load)
       <img src="/Logo_CimaKids.png" alt="Logo" class="mx-auto h-16" />
     </div>
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-3xl font-bold">Child Details</h1>
+      <h1 class="text-3xl font-bold">Detalles del Niño</h1>
       <UiButton variant="secondary" @click="logout">
-        Log out
+        Cerrar Sesión
       </UiButton>
     </div>
 
-    <div v-if="admin.loading.value" class="text-center">Loading…</div>
+    <div v-if="admin.loading.value" class="text-center">Cargando...</div>
     <div v-else-if="admin.error.value" class="bg-red-100 text-red-700 p-3 rounded">
       {{ admin.error.value }}
     </div>
     <div v-else-if="child">
       <section class="mb-6">
-        <h2 class="text-xl font-semibold mb-2">Basic Info</h2>
-        <p><strong>Name:</strong> {{ child.firstName }} {{ child.lastName }}</p>
-        <p><strong>Birth date:</strong> {{ formatDate(child.birthDate) }}</p>
-        <p><strong>Family ID:</strong> {{ child.family.id }}</p>
+        <h2 class="text-xl font-semibold mb-2">Información Básica</h2>
+        <p><strong>Nombre:</strong> {{ child.firstName }} {{ child.lastName }}</p>
+        <p><strong>Fecha de nacimiento:</strong> {{ formatDate(child.birthDate) }}</p>
+        <p><strong>ID Familia:</strong> {{ child.family.parentId }}</p>
       </section>
 
       <section class="mb-6">
-        <h2 class="text-xl font-semibold mb-2">Parents</h2>
+        <h2 class="text-xl font-semibold mb-2">Padres</h2>
         <ul class="list-disc ml-6">
           <li v-for="p in child.family.parents" :key="p.id">
             <div class="font-medium">{{ p.firstName }} {{ p.lastName }}</div>
@@ -67,14 +67,14 @@ onMounted(load)
       </section>
 
       <section>
-        <h2 class="text-xl font-semibold mb-2">Check‑in History</h2>
+        <h2 class="text-xl font-semibold mb-2">Historial de Registros</h2>
         <table class="w-full table-auto border-collapse">
           <thead>
             <tr class="bg-gray-100">
-              <th class="border px-2 py-1">Code</th>
-              <th class="border px-2 py-1">In</th>
-              <th class="border px-2 py-1">Out</th>
-              <th class="border px-2 py-1">Notes</th>
+              <th class="border px-2 py-1">Código</th>
+              <th class="border px-2 py-1">Entrada</th>
+              <th class="border px-2 py-1">Salida</th>
+              <th class="border px-2 py-1">Notas</th>
             </tr>
           </thead>
           <tbody>
@@ -89,10 +89,10 @@ onMounted(load)
       </section>
     </div>
     <div v-else>
-      <p class="text-gray-500">Child data not available.</p>
+      <p class="text-gray-500">Datos del niño no disponibles.</p>
     </div>
 
-    <UiButton class="mt-6" @click="goBack">Back</UiButton>
+    <UiButton class="mt-6" @click="goBack">Volver</UiButton>
   </div>
 </template>
 

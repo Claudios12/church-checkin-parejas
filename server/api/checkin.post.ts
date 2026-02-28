@@ -5,6 +5,7 @@ import { normalizeParentId, isValidParentId } from '../utils/normalizeId'
 interface ParentInput {
   firstName: string
   lastName: string
+  documentId?: string
   phone?: string
   address?: string
 }
@@ -46,24 +47,26 @@ export default defineEventHandler(async (event) => {
     }
 
     // Step 1: Find or create family
+    // First try by primary family ID
     let family = await prisma.family.findUnique({
       where: { parentId: normalizedId },
-      include: {
-        parents: true,
-        children: true,
-      },
+      include: { parents: true, children: true },
     })
 
+    // If not found, the user might be a secondary parent — search by parent documentId
     if (!family) {
-      // Create new family with normalized ID
+      const parent = await prisma.parent.findFirst({
+        where: { documentId: normalizedId },
+        include: { family: { include: { parents: true, children: true } } },
+      })
+      if (parent) family = parent.family as any
+    }
+
+    if (!family) {
+      // Truly new family — create it using the submitted ID as primary
       family = await prisma.family.create({
-        data: {
-          parentId: normalizedId,
-        },
-        include: {
-          parents: true,
-          children: true,
-        },
+        data: { parentId: normalizedId },
+        include: { parents: true, children: true },
       })
     }
 
@@ -73,11 +76,14 @@ export default defineEventHandler(async (event) => {
       where: { familyId: family.id },
     })
 
-    const parentPromises = body.parents.map((parent) =>
+    const parentPromises = body.parents.map((parent, index) =>
       prisma.parent.create({
         data: {
           firstName: parent.firstName,
           lastName: parent.lastName,
+          // Primary parent always gets the family document as their documentId
+          // Secondary parents use whatever documentId was submitted
+          documentId: index === 0 ? normalizedId : (parent.documentId || null),
           phone: parent.phone || null,
           address: parent.address || null,
           familyId: family.id,
@@ -94,15 +100,27 @@ export default defineEventHandler(async (event) => {
       let child
 
       if (childData.id) {
-        // Existing child - update if needed
-        child = await prisma.child.update({
-          where: { id: childData.id },
-          data: {
-            firstName: childData.firstName,
-            lastName: childData.lastName,
-            birthDate: new Date(childData.birthDate),
-          },
-        })
+        // Existing child - update if it still exists, otherwise create fresh
+        const existing = await prisma.child.findUnique({ where: { id: childData.id } })
+        if (existing) {
+          child = await prisma.child.update({
+            where: { id: childData.id },
+            data: {
+              firstName: childData.firstName,
+              lastName: childData.lastName,
+              birthDate: new Date(childData.birthDate),
+            },
+          })
+        } else {
+          child = await prisma.child.create({
+            data: {
+              firstName: childData.firstName,
+              lastName: childData.lastName,
+              birthDate: new Date(childData.birthDate),
+              familyId: family.id,
+            },
+          })
+        }
       } else {
         // New child - create
         child = await prisma.child.create({
@@ -162,7 +180,7 @@ export default defineEventHandler(async (event) => {
     console.error('Error de registro:', error)
     throw createError({
       statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Error al crear el registro',
+      statusMessage: error.statusMessage || error.message || 'Error al crear el registro',
     })
   }
 })

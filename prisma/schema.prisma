@@ -27,6 +27,7 @@ model Parent {
   id         String   @id @default(cuid())
   firstName  String
   lastName   String
+  documentId String?
   phone      String?
   address    String?
   familyId   String
@@ -35,6 +36,7 @@ model Parent {
   family     Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
   @@index([familyId])
+  @@index([documentId])
 }
 
 model Child {

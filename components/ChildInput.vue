@@ -1,5 +1,5 @@
 <template>
-  <div class="child-input bg-gray-50 rounded-lg p-4 border-2 border-gray-200">
+  <div class="child-input bg-gray-50 rounded-lg p-4 border-2" :class="ageError ? 'border-red-400' : 'border-gray-200'">
     <div class="flex justify-between items-center mb-3">
       <h3 class="text-lg font-semibold text-gray-700">Niño {{ index + 1 }}</h3>
       <UiButton
@@ -36,11 +36,16 @@
         required
       />
     </div>
+
+    <div v-if="ageError" class="mt-3 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm font-semibold">
+      ⚠️ Este niño tiene {{ ageError }} años — pertenece al ministerio de jóvenes.
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { Child } from '~/composables/useCheckIn'
+import { calculateAge } from '~/utils/age'
 
 interface Props {
   child: Child
@@ -59,9 +64,14 @@ const emit = defineEmits<{
 
 const localChild = ref<Child>({ ...props.child })
 
+const ageError = computed(() => {
+  if (!localChild.value.birthDate) return null
+  const age = calculateAge(localChild.value.birthDate)
+  return age > 15 ? age : null
+})
+
 // Watch for external changes
 watch(() => props.child, (newChild) => {
-  // Only update if values are actually different
   if (JSON.stringify(localChild.value) !== JSON.stringify(newChild)) {
     localChild.value = { ...newChild }
   }
@@ -69,7 +79,6 @@ watch(() => props.child, (newChild) => {
 
 // Emit changes
 watch(localChild, (newChild) => {
-  // Only emit if different from props
   if (JSON.stringify(newChild) !== JSON.stringify(props.child)) {
     emit('update:child', { ...newChild })
   }

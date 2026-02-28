@@ -106,16 +106,6 @@
           🖨 Imprimir Etiquetas (Tablet)
         </UiButton>
 
-        <!-- Mobile: open sticker page with logo embedded -->
-        <UiButton
-          variant="primary"
-          size="large"
-          class="w-full"
-          @click="handleDownload"
-        >
-          📱 Etiquetas para Móvil
-        </UiButton>
-
         <UiButton
           variant="secondary"
           size="large"
@@ -167,7 +157,7 @@ const config = useRuntimeConfig()
 const churchName = config.public.churchName
 const autoResetSeconds = parseInt(config.public.autoResetSeconds)
 
-const { printStickers, downloadStickers, formatTime, formatDate } = usePrint()
+const { printStickers, formatTime, formatDate } = usePrint()
 
 // Easter egg celebration
 const showCelebration = ref(false)
@@ -200,10 +190,6 @@ let countdownInterval: ReturnType<typeof setInterval> | null = null
 
 const handlePrint = () => {
   printStickers(props.checkIns)
-}
-
-const handleDownload = () => {
-  downloadStickers(props.checkIns)
 }
 
 const handleDone = () => {

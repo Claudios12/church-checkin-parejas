@@ -20,14 +20,73 @@
       <p>Encontramos tu familia. Selecciona tus hijos abajo o agrega nuevos.</p>
     </div>
 
-    <!-- Parent Info Section -->
+    <!-- Primary Parent -->
     <ParentInfo
       v-model:parent-id="formData.parentId"
       v-model:parent-first-name="formData.parentFirstName"
       v-model:parent-last-name="formData.parentLastName"
+      v-model:parent-phone="formData.parentPhone"
+      v-model:parent-address="formData.parentAddress"
       :disabled="checkIn.loading.value"
       @id-blur="handleIdLookup"
     />
+
+    <!-- Second parent toggle -->
+    <div class="text-center">
+      <button
+        type="button"
+        class="text-blue-400 underline text-sm"
+        @click="toggleSecondParent"
+      >
+        {{ showSecondParent ? '— Quitar segundo padre/madre' : '+ Agregar segundo padre/madre' }}
+      </button>
+    </div>
+
+    <!-- Second Parent -->
+    <div v-if="showSecondParent" class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-2xl font-bold mb-4 text-gray-800">Segundo Padre/Madre</h2>
+      <div class="mb-4">
+        <UiInput
+          v-model="formData.secondParentDocumentId"
+          type="text"
+          label="Documento de Identidad (para que pueda buscar la familia con su propio documento)"
+          placeholder="Ej: 1007557880"
+          :disabled="checkIn.loading.value"
+        />
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <UiInput
+          v-model="formData.secondParentFirstName"
+          type="text"
+          label="Nombre"
+          placeholder="María"
+          :disabled="checkIn.loading.value"
+        />
+        <UiInput
+          v-model="formData.secondParentLastName"
+          type="text"
+          label="Apellido"
+          placeholder="García"
+          :disabled="checkIn.loading.value"
+        />
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+        <UiInput
+          v-model="formData.secondParentPhone"
+          type="tel"
+          label="Teléfono"
+          placeholder="3001234567"
+          :disabled="checkIn.loading.value"
+        />
+        <UiInput
+          v-model="formData.secondParentAddress"
+          type="text"
+          label="Dirección"
+          placeholder="Calle 123 #45-67"
+          :disabled="checkIn.loading.value"
+        />
+      </div>
+    </div>
 
     <!-- Children List Section -->
     <ChildrenList
@@ -76,19 +135,33 @@ const formData = ref({
   parentLastName: '',
   parentPhone: '',
   parentAddress: '',
+  secondParentDocumentId: '',
+  secondParentFirstName: '',
+  secondParentLastName: '',
+  secondParentPhone: '',
+  secondParentAddress: '',
   children: [] as any[],
 })
 
+const showSecondParent = ref(false)
 const familyFound = ref(false)
 const existingChildren = ref<any[]>([])
 const errorMessage = ref('')
 
+const toggleSecondParent = () => {
+  showSecondParent.value = !showSecondParent.value
+  if (!showSecondParent.value) {
+    formData.value.secondParentDocumentId = ''
+    formData.value.secondParentFirstName = ''
+    formData.value.secondParentLastName = ''
+    formData.value.secondParentPhone = ''
+    formData.value.secondParentAddress = ''
+  }
+}
+
 const canSubmit = computed(() => {
-  // Remove frontend format validation - let backend handle it
-  // Just check that we have some ID value with minimum viable length
   const hasValidId = formData.value.parentId &&
                      formData.value.parentId.trim().length >= 6
-
   return (
     hasValidId &&
     formData.value.parentFirstName &&
@@ -97,26 +170,49 @@ const canSubmit = computed(() => {
   )
 })
 
-const handleIdLookup = async () => {
-  // Trigger lookup when ID has minimum viable length (allow spaces/formatting)
-  if (!formData.value.parentId || formData.value.parentId.trim().length < 6) {
+const handleIdLookup = async (id: string) => {
+  if (!id || id.trim().length < 6) {
     return
   }
 
+  // Normalize id the same way the server does (strip non-alphanumeric, uppercase)
+  const normalizedSearchedId = id.trim().replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
+
   try {
-    const result = await checkIn.searchFamily(formData.value.parentId)
+    const result = await checkIn.searchFamily(id)
 
     if (result.found && result.family) {
       familyFound.value = true
       existingChildren.value = result.family.children
 
-      // Pre-fill parent info
-      if (result.family.parents.length > 0) {
-        const parent = result.family.parents[0]
-        formData.value.parentFirstName = parent.firstName
-        formData.value.parentLastName = parent.lastName
-        formData.value.parentPhone = (parent as any).phone || ''
-        formData.value.parentAddress = (parent as any).address || ''
+      // Determine which parent entered this ID
+      // Primary family ID (family.parentId) belongs to parents[0]
+      // Secondary parents have their own documentId stored
+      const parents = result.family.parents as any[]
+      let matchedIndex = 0
+      if (normalizedSearchedId !== result.family.parentId) {
+        const secIdx = parents.findIndex((p: any) => p.documentId === normalizedSearchedId)
+        if (secIdx !== -1) matchedIndex = secIdx
+      }
+
+      const matchedParent = parents[matchedIndex]
+      if (!matchedParent) return  // no parents in this family, nothing to pre-fill
+
+      formData.value.parentFirstName = matchedParent.firstName
+      formData.value.parentLastName = matchedParent.lastName
+      formData.value.parentPhone = matchedParent.phone || ''
+      formData.value.parentAddress = matchedParent.address || ''
+
+      // Pre-fill second parent (any parent that isn't the matched one)
+      const otherParents = parents.filter((_: any, i: number) => i !== matchedIndex)
+      if (otherParents.length > 0) {
+        const second = otherParents[0]
+        showSecondParent.value = true
+        formData.value.secondParentDocumentId = second.documentId || ''
+        formData.value.secondParentFirstName = second.firstName
+        formData.value.secondParentLastName = second.lastName
+        formData.value.secondParentPhone = second.phone || ''
+        formData.value.secondParentAddress = second.address || ''
       }
     } else {
       familyFound.value = false
@@ -124,9 +220,6 @@ const handleIdLookup = async () => {
     }
   } catch (error) {
     console.error('Error looking up family:', error)
-    // Don't show error for lookup failures - just treat as new family
-    familyFound.value = false
-    existingChildren.value = []
   }
 }
 
@@ -138,24 +231,32 @@ const handleSubmit = async () => {
 
   errorMessage.value = ''
 
+  const parents: any[] = [
+    {
+      firstName: formData.value.parentFirstName,
+      lastName: formData.value.parentLastName,
+      phone: formData.value.parentPhone,
+      address: formData.value.parentAddress,
+    },
+  ]
+
+  if (showSecondParent.value && formData.value.secondParentFirstName) {
+    parents.push({
+      documentId: formData.value.secondParentDocumentId || undefined,
+      firstName: formData.value.secondParentFirstName,
+      lastName: formData.value.secondParentLastName,
+      phone: formData.value.secondParentPhone,
+      address: formData.value.secondParentAddress,
+    })
+  }
+
   try {
-    const checkInData = {
+    const result = await checkIn.createCheckIn({
       parentId: formData.value.parentId,
-      parents: [
-        {
-          firstName: formData.value.parentFirstName,
-          lastName: formData.value.parentLastName,
-            phone: formData.value.parentPhone,
-            address: formData.value.parentAddress,
-        },
-      ],
+      parents,
       children: formData.value.children,
-    }
+    })
 
-    const result = await checkIn.createCheckIn(checkInData)
-
-    // Easter egg: Detect if Christian Donado is checking in
-    // Flexible matching: works with "Christian" or "Christian David" and "Donado" or "Donado Giraldo"
     const firstName = formData.value.parentFirstName.toLowerCase().trim()
     const lastName = formData.value.parentLastName.toLowerCase().trim()
     const isDeveloper = firstName.includes('christian') && lastName.includes('donado')
@@ -173,14 +274,21 @@ const handleCancel = () => {
   }
 }
 
-// Reset form function (can be called from parent)
 const resetForm = () => {
   formData.value = {
     parentId: '',
     parentFirstName: '',
     parentLastName: '',
+    parentPhone: '',
+    parentAddress: '',
+    secondParentDocumentId: '',
+    secondParentFirstName: '',
+    secondParentLastName: '',
+    secondParentPhone: '',
+    secondParentAddress: '',
     children: [],
   }
+  showSecondParent.value = false
   familyFound.value = false
   existingChildren.value = []
   errorMessage.value = ''

@@ -3,11 +3,11 @@
     <h2 class="text-2xl font-bold mb-4 text-gray-800">Niños</h2>
 
     <!-- Existing children (if returning family) -->
-    <div v-if="existingChildren.length > 0" class="mb-6">
+    <div v-if="eligibleExistingChildren.length > 0" class="mb-6">
       <h3 class="text-lg font-semibold mb-3 text-gray-700">Seleccionar Niños Existentes:</h3>
       <div class="space-y-2">
         <label
-          v-for="child in existingChildren"
+          v-for="child in eligibleExistingChildren"
           :key="child.id"
           class="flex items-center p-3 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors"
         >
@@ -62,6 +62,8 @@
 import type { Child } from '~/composables/useCheckIn'
 import { calculateAge } from '~/utils/age'
 
+const MAX_AGE = 15
+
 interface ExistingChild {
   id: string
   firstName: string
@@ -80,6 +82,11 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'update:children': [children: Child[]]
 }>()
+
+// Only show existing children aged 15 and under
+const eligibleExistingChildren = computed(() =>
+  props.existingChildren.filter(c => calculateAge(c.birthDate) <= MAX_AGE)
+)
 
 // Selected existing children IDs
 const selectedExistingIds = ref<string[]>([])
@@ -124,10 +131,10 @@ const updateNewChild = (index: number, child: Child) => {
 const emitChildren = () => {
   const children: Child[] = []
 
-  // Add selected existing children
+  // Add selected existing children (only 15 and under)
   selectedExistingIds.value.forEach((id) => {
     const existing = props.existingChildren.find((c) => c.id === id)
-    if (existing) {
+    if (existing && calculateAge(existing.birthDate) <= MAX_AGE) {
       children.push({
         id: existing.id,
         firstName: existing.firstName,
@@ -137,9 +144,9 @@ const emitChildren = () => {
     }
   })
 
-  // Add new children (only if they have a name and birthDate)
+  // Add new children (only if they have a name, birthDate, and are 15 or under)
   newChildren.value.forEach((child) => {
-    if (child.firstName && child.lastName && child.birthDate) {
+    if (child.firstName && child.lastName && child.birthDate && calculateAge(child.birthDate) <= MAX_AGE) {
       children.push({
         firstName: child.firstName,
         lastName: child.lastName,
