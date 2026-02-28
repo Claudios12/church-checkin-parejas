@@ -25,6 +25,10 @@ set DATABASE_URL=file:%~dp0dev.db
 call bunx prisma migrate deploy
 
 echo.
+echo Regenerating Prisma client...
+call bunx prisma generate
+
+echo.
 echo Rebuilding app...
 call bun run build
 if errorlevel 1 (
