@@ -29,6 +29,12 @@ export default defineNuxtConfig({
     },
   },
 
+  nitro: {
+    externals: {
+      traceInclude: ['./node_modules/.prisma/client'],
+    },
+  },
+
   typescript: {
     strict: true,
     typeCheck: false,
