@@ -20,6 +20,11 @@ echo Installing any new dependencies...
 call bun install
 
 echo.
+echo Applying any database changes...
+set DATABASE_URL=file:%~dp0dev.db
+call bunx prisma migrate deploy
+
+echo.
 echo Rebuilding app...
 call bun run build
 if errorlevel 1 (
