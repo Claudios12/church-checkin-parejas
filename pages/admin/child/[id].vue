@@ -15,8 +15,15 @@ const editForm = ref({ firstName: '', lastName: '', phone: '', address: '', docu
 const saving = ref(false)
 const saveError = ref('')
 
+const editingChild = ref(false)
+const childForm = ref({ firstName: '', lastName: '', birthDate: '' })
+const savingChild = ref(false)
+const childSaveError = ref('')
+
 const formatDate = (d: string) => new Date(d).toLocaleDateString()
 const formatDateTime = (d: string) => new Date(d).toLocaleString()
+
+const toInputDate = (d: string) => new Date(d).toISOString().split('T')[0]
 
 const load = async () => {
   try {
@@ -30,6 +37,40 @@ const logout = () => {
 }
 
 const goBack = () => navigateTo('/admin')
+
+const startEditChild = () => {
+  if (!child.value) return
+  childForm.value = {
+    firstName: child.value.firstName,
+    lastName: child.value.lastName,
+    birthDate: toInputDate(child.value.birthDate),
+  }
+  childSaveError.value = ''
+  editingChild.value = true
+}
+
+const cancelEditChild = () => {
+  editingChild.value = false
+  childSaveError.value = ''
+}
+
+const saveChild = async () => {
+  if (!child.value) return
+  savingChild.value = true
+  childSaveError.value = ''
+  try {
+    await $fetch(`/api/admin/child/${child.value.id}`, {
+      method: 'PUT',
+      headers: { 'x-admin-password': localStorage.getItem('admin_password') || '' },
+      body: childForm.value,
+    })
+    editingChild.value = false
+    await load()
+  } catch (e: any) {
+    childSaveError.value = e.data?.statusMessage || 'Error al guardar'
+  }
+  savingChild.value = false
+}
 
 const startEdit = (p: any) => {
   editingParentId.value = p.id
@@ -83,13 +124,50 @@ onMounted(load)
       {{ admin.error.value }}
     </div>
     <div v-else-if="child">
-      <section class="mb-6">
-        <h2 class="text-xl font-semibold mb-2">Información Básica</h2>
-        <p><strong>Nombre:</strong> {{ child.firstName }} {{ child.lastName }}</p>
-        <p><strong>Fecha de nacimiento:</strong> {{ formatDate(child.birthDate) }}</p>
-        <p><strong>ID Familia:</strong> {{ child.family.parentId }}</p>
+
+      <!-- Child info -->
+      <section class="mb-6 border rounded p-4">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-xl font-semibold">Información Básica</h2>
+          <UiButton v-if="!editingChild" variant="secondary" size="small" @click="startEditChild">Editar</UiButton>
+        </div>
+
+        <!-- View mode -->
+        <div v-if="!editingChild">
+          <p><strong>Nombre:</strong> {{ child.firstName }} {{ child.lastName }}</p>
+          <p><strong>Fecha de nacimiento:</strong> {{ formatDate(child.birthDate) }}</p>
+          <p><strong>ID Familia:</strong> {{ child.family.parentId }}</p>
+        </div>
+
+        <!-- Edit mode -->
+        <div v-else class="space-y-2">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs text-gray-500">Nombre</label>
+              <UiInput v-model="childForm.firstName" placeholder="Nombre" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">Apellido</label>
+              <UiInput v-model="childForm.lastName" placeholder="Apellido" />
+            </div>
+          </div>
+          <div>
+            <label class="text-xs text-gray-500">Fecha de nacimiento</label>
+            <input
+              v-model="childForm.birthDate"
+              type="date"
+              class="w-full border rounded px-3 py-2 text-base"
+            />
+          </div>
+          <p v-if="childSaveError" class="text-red-600 text-sm">{{ childSaveError }}</p>
+          <div class="flex gap-2">
+            <UiButton :loading="savingChild" @click="saveChild">Guardar</UiButton>
+            <UiButton variant="secondary" @click="cancelEditChild">Cancelar</UiButton>
+          </div>
+        </div>
       </section>
 
+      <!-- Parents -->
       <section class="mb-6">
         <h2 class="text-xl font-semibold mb-2">Padres</h2>
         <div v-for="p in child.family.parents" :key="p.id" class="border rounded p-3 mb-3">
@@ -139,6 +217,7 @@ onMounted(load)
         </div>
       </section>
 
+      <!-- Check-in history -->
       <section>
         <h2 class="text-xl font-semibold mb-2">Historial de Registros</h2>
         <table class="w-full table-auto border-collapse">
