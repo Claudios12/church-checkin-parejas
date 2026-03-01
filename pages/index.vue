@@ -32,6 +32,7 @@
       <p class="text-sm">
         ¿Necesitas ayuda? Pregunta a un voluntario de Cima Iglesia Kids
       </p>
+      <p class="text-xs mt-2 opacity-40">Hecho por Christian Donado &amp; Cima Iglesia</p>
     </footer>
   </div>
 </template>
