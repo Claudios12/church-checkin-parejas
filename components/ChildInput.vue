@@ -38,7 +38,7 @@
     </div>
 
     <div v-if="ageError" class="mt-3 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm font-semibold">
-      ⚠️ Este niño tiene {{ ageError }} años — pertenece al ministerio de jóvenes.
+      ⚠️ Este niño tiene {{ ageError }} años — pertenece al ministerio de jóvenes Deeper.
     </div>
   </div>
 </template>
