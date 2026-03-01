@@ -14,10 +14,10 @@ export default defineEventHandler(async (event) => {
   
   if (!searchTerm) {
     const all = await prisma.child.findMany({
-      select: { id: true, firstName: true, lastName: true, birthDate: true },
+      select: { id: true, firstName: true, lastName: true, birthDate: true, family: { select: { isVisitor: true } } },
       orderBy: { firstName: 'asc' },
     })
-    return { children: all }
+    return { children: (all as any[]).map(c => ({ ...c, isVisitor: c.family?.isVisitor ?? false })) }
   }
 
   // Split into parts: "mateo fajardo" -> ["mateo", "fajardo"]

@@ -159,6 +159,7 @@ onMounted(load)
           <p><strong>Nombre:</strong> {{ child.firstName }} {{ child.lastName }}</p>
           <p><strong>Fecha de nacimiento:</strong> {{ formatDate(child.birthDate) }} <span class="text-gray-500">({{ getAge(child.birthDate) }} años)</span></p>
           <p><strong>ID Familia:</strong> {{ child.family.parentId }}</p>
+          <span v-if="child.family.isVisitor" class="inline-block mt-1 bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded">VISITANTE</span>
         </div>
 
         <!-- Edit mode -->

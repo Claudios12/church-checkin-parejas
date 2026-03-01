@@ -37,6 +37,7 @@
           >
             {{ child.firstName }} {{ child.lastName }}
             <span v-if="child.birthDate" class="text-sm text-gray-400 ml-2">{{ getAge(child.birthDate) }} años</span>
+            <span v-if="child.isVisitor" class="ml-2 bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded">VISITANTE</span>
           </li>
         </ul>
       </div>

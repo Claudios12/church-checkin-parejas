@@ -38,6 +38,7 @@ export default defineEventHandler(async (event) => {
       family: {
         id: child.family.id,
         parentId: child.family.parentId,
+        isVisitor: (child.family as any).isVisitor ?? false,
         parents: (child.family.parents as any[]).map((p) => ({
           id: p.id,
           firstName: p.firstName,

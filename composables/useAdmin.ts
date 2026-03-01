@@ -3,6 +3,7 @@ export interface ChildSummary {
   firstName: string
   lastName: string
   birthDate?: string
+  isVisitor?: boolean
 }
 
 export interface ParentInfo {
@@ -30,6 +31,7 @@ export interface ChildDetails {
   family: {
     id: string
     parentId: string
+    isVisitor: boolean
     parents: ParentInfo[]
   }
   checkIns: CheckInRecord[]

@@ -21,6 +21,7 @@ interface CheckInRequest {
   parentId: string
   parents: ParentInput[]
   children: ChildInput[]
+  isVisitor?: boolean
 }
 
 export default defineEventHandler(async (event) => {
@@ -28,18 +29,30 @@ export default defineEventHandler(async (event) => {
     const body: CheckInRequest = await readBody(event)
 
     // Validación
-    if (!body.parentId || !body.parents?.length || !body.children?.length) {
+    if (!body.parents?.length || !body.children?.length) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Faltan campos requeridos: documento de identidad, padres o niños',
+        statusMessage: 'Faltan campos requeridos: padres o niños',
+      })
+    }
+
+    // Visitors don't need a cedula — generate a unique temp ID
+    if (body.isVisitor && !body.parentId) {
+      body.parentId = `VISIT${Date.now()}`
+    }
+
+    if (!body.parentId) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Faltan campos requeridos: documento de identidad',
       })
     }
 
     // Normalize the parent ID
     const normalizedId = normalizeParentId(body.parentId)
 
-    // Validate normalized ID format
-    if (!isValidParentId(normalizedId)) {
+    // Validate normalized ID format (skip strict validation for visitor IDs)
+    if (!body.isVisitor && !isValidParentId(normalizedId)) {
       throw createError({
         statusCode: 400,
         statusMessage: 'El documento de identidad debe tener entre 6 y 15 caracteres alfanuméricos',
@@ -47,14 +60,14 @@ export default defineEventHandler(async (event) => {
     }
 
     // Step 1: Find or create family
-    // First try by primary family ID
-    let family = await prisma.family.findUnique({
+    // Visitors always get a new family — never reuse an existing one
+    let family = body.isVisitor ? null : await prisma.family.findUnique({
       where: { parentId: normalizedId },
       include: { parents: true, children: true },
     })
 
     // If not found, the user might be a secondary parent — search by parent documentId
-    if (!family) {
+    if (!family && !body.isVisitor) {
       const parent = await prisma.parent.findFirst({
         where: { documentId: normalizedId },
         include: { family: { include: { parents: true, children: true } } },
@@ -65,7 +78,7 @@ export default defineEventHandler(async (event) => {
     if (!family) {
       // Truly new family — create it using the submitted ID as primary
       family = await prisma.family.create({
-        data: { parentId: normalizedId },
+        data: { parentId: normalizedId, isVisitor: body.isVisitor ?? false },
         include: { parents: true, children: true },
       })
     }

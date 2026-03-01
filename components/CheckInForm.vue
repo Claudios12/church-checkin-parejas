@@ -14,8 +14,25 @@
       <p>{{ errorMessage }}</p>
     </div>
 
+    <!-- Visitor toggle -->
+    <div class="flex items-center justify-center gap-3 bg-yellow-50 border border-yellow-300 rounded-lg px-6 py-3">
+      <span class="text-gray-700 font-medium">¿Es un padre visitante?</span>
+      <button
+        type="button"
+        :class="isVisitor ? 'bg-yellow-400' : 'bg-gray-300'"
+        class="relative inline-flex h-8 w-14 items-center rounded-full transition-colors"
+        @click="toggleVisitor"
+      >
+        <span
+          :class="isVisitor ? 'translate-x-7' : 'translate-x-1'"
+          class="inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform"
+        />
+      </button>
+      <span v-if="isVisitor" class="text-yellow-700 font-semibold text-sm">VISITANTE</span>
+    </div>
+
     <!-- Success message for returning family -->
-    <div v-if="familyFound" class="bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg">
+    <div v-if="familyFound && !isVisitor" class="bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg">
       <p class="font-bold">¡Bienvenido de nuevo!</p>
       <p>Encontramos tu familia. Selecciona tus hijos abajo o agrega nuevos.</p>
     </div>
@@ -28,6 +45,7 @@
       v-model:parent-phone="formData.parentPhone"
       v-model:parent-address="formData.parentAddress"
       :disabled="checkIn.loading.value"
+      :is-visitor="isVisitor"
       @id-blur="handleIdLookup"
     />
 
@@ -147,6 +165,15 @@ const showSecondParent = ref(false)
 const familyFound = ref(false)
 const existingChildren = ref<any[]>([])
 const errorMessage = ref('')
+const isVisitor = ref(false)
+
+const toggleVisitor = () => {
+  isVisitor.value = !isVisitor.value
+  // Reset form when toggling to clear stale data
+  formData.value.parentId = ''
+  familyFound.value = false
+  existingChildren.value = []
+}
 
 const toggleSecondParent = () => {
   showSecondParent.value = !showSecondParent.value
@@ -160,8 +187,10 @@ const toggleSecondParent = () => {
 }
 
 const canSubmit = computed(() => {
-  const hasValidId = formData.value.parentId &&
-                     formData.value.parentId.trim().length >= 6
+  const hasValidId = isVisitor.value || (
+    formData.value.parentId &&
+    formData.value.parentId.trim().length >= 6
+  )
   return (
     hasValidId &&
     formData.value.parentFirstName &&
@@ -255,6 +284,7 @@ const handleSubmit = async () => {
       parentId: formData.value.parentId,
       parents,
       children: formData.value.children,
+      isVisitor: isVisitor.value,
     })
 
     const firstName = formData.value.parentFirstName.toLowerCase().trim()
@@ -292,6 +322,7 @@ const resetForm = () => {
   familyFound.value = false
   existingChildren.value = []
   errorMessage.value = ''
+  isVisitor.value = false
 }
 
 defineExpose({

@@ -4,6 +4,7 @@
 
     <div class="space-y-4">
       <UiInput
+        v-if="!isVisitor"
         v-model="localData.parentId"
         type="text"
         label="Documento de Identidad del Padre/Madre"
@@ -61,6 +62,7 @@ interface Props {
   parentPhone?: string
   parentAddress?: string
   disabled?: boolean
+  isVisitor?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -70,6 +72,7 @@ const props = withDefaults(defineProps<Props>(), {
   parentPhone: '',
   parentAddress: '',
   disabled: false,
+  isVisitor: false,
 })
 
 const emit = defineEmits<{
