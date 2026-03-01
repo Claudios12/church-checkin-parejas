@@ -1,6 +1,7 @@
 @echo off
 title Church Check-In Update
 cd /d "%~dp0"
+set NODE_OPTIONS=--no-deprecation
 
 echo ================================
 echo   Church Check-In Update
