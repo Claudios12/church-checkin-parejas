@@ -25,6 +25,15 @@ const formatDateTime = (d: string) => new Date(d).toLocaleString()
 
 const toInputDate = (d: string) => new Date(d).toISOString().split('T')[0]
 
+const getAge = (d: string) => {
+  const today = new Date()
+  const birth = new Date(d)
+  let age = today.getFullYear() - birth.getFullYear()
+  const m = today.getMonth() - birth.getMonth()
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
+  return age
+}
+
 const load = async () => {
   try {
     child.value = await admin.fetchChild(route.params.id as string)
@@ -60,7 +69,7 @@ const saveChild = async () => {
   childSaveError.value = ''
   try {
     await $fetch(`/api/admin/child/${child.value.id}`, {
-      method: 'PUT',
+      method: 'PUT' as const,
       headers: { 'x-admin-password': localStorage.getItem('admin_password') || '' },
       body: childForm.value,
     })
@@ -89,12 +98,25 @@ const cancelEdit = () => {
   saveError.value = ''
 }
 
+const unlinkParent = async (p: any) => {
+  if (!confirm(`¿Desvincular a ${p.firstName} ${p.lastName} de esta familia? Esta acción no se puede deshacer.`)) return
+  try {
+    await $fetch(`/api/admin/parent/${p.id}`, {
+      method: 'DELETE' as const,
+      headers: { 'x-admin-password': localStorage.getItem('admin_password') || '' },
+    })
+    await load()
+  } catch (e: any) {
+    alert('Error al desvincular: ' + (e.data?.statusMessage || e.message))
+  }
+}
+
 const saveParent = async (parentId: string) => {
   saving.value = true
   saveError.value = ''
   try {
     await $fetch(`/api/admin/parent/${parentId}`, {
-      method: 'PUT',
+      method: 'PUT' as const,
       headers: { 'x-admin-password': localStorage.getItem('admin_password') || '' },
       body: editForm.value,
     })
@@ -135,7 +157,7 @@ onMounted(load)
         <!-- View mode -->
         <div v-if="!editingChild">
           <p><strong>Nombre:</strong> {{ child.firstName }} {{ child.lastName }}</p>
-          <p><strong>Fecha de nacimiento:</strong> {{ formatDate(child.birthDate) }}</p>
+          <p><strong>Fecha de nacimiento:</strong> {{ formatDate(child.birthDate) }} <span class="text-gray-500">({{ getAge(child.birthDate) }} años)</span></p>
           <p><strong>ID Familia:</strong> {{ child.family.parentId }}</p>
         </div>
 
@@ -178,9 +200,10 @@ onMounted(load)
             <p class="text-sm text-gray-600">Cédula: {{ p.documentId || '-' }}</p>
             <p class="text-sm text-gray-600">Tel: {{ p.phone || '-' }}</p>
             <p class="text-sm text-gray-600">Dir: {{ p.address || '-' }}</p>
-            <UiButton variant="secondary" size="small" class="mt-2" @click="startEdit(p)">
-              Editar
-            </UiButton>
+            <div class="flex gap-2 mt-2">
+              <UiButton variant="secondary" size="small" @click="startEdit(p)">Editar</UiButton>
+              <UiButton variant="danger" size="small" @click="unlinkParent(p)">Desvincular</UiButton>
+            </div>
           </div>
 
           <!-- Edit mode -->

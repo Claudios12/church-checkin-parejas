@@ -13,7 +13,11 @@ export default defineEventHandler(async (event) => {
   const searchTerm = name.trim().toLowerCase()
   
   if (!searchTerm) {
-    return { children: [] }
+    const all = await prisma.child.findMany({
+      select: { id: true, firstName: true, lastName: true, birthDate: true },
+      orderBy: { firstName: 'asc' },
+    })
+    return { children: all }
   }
 
   // Split into parts: "mateo fajardo" -> ["mateo", "fajardo"]
@@ -37,6 +41,7 @@ export default defineEventHandler(async (event) => {
       id: true,
       firstName: true,
       lastName: true,
+      birthDate: true,
     },
     orderBy: { firstName: 'asc' },
     take: 50,

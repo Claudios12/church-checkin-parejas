@@ -44,6 +44,7 @@ export default defineEventHandler(async (event) => {
           lastName: p.lastName,
           phone: p.phone || null,
           address: p.address || null,
+          documentId: p.documentId || null,
         })),
       },
       checkIns: (child.checkIns as any[]).map((ci) => ({

@@ -2,6 +2,7 @@ export interface ChildSummary {
   id: string
   firstName: string
   lastName: string
+  birthDate?: string
 }
 
 export interface ParentInfo {
@@ -10,6 +11,7 @@ export interface ParentInfo {
   lastName: string
   phone?: string
   address?: string
+  documentId?: string
 }
 
 export interface CheckInRecord {

@@ -21,11 +21,13 @@
       <div class="flex justify-between items-center mb-4 gap-2">
         <UiInput v-model="searchName" placeholder="Nombre del niño" class="flex-grow" />
         <UiButton :loading="admin.loading.value" @click="doSearch">Buscar</UiButton>
+        <UiButton variant="secondary" :loading="admin.loading.value" @click="doShowAll">Ver Todos</UiButton>
         <UiButton variant="secondary" @click="admin.logout()">Cerrar Sesión</UiButton>
       </div>
 
       <!-- Search results -->
       <div v-if="results.length">
+        <p class="text-sm text-gray-500 mb-2">{{ results.length }} niño(s) encontrado(s)</p>
         <ul class="divide-y border rounded">
           <li
             v-for="child in results"
@@ -34,6 +36,7 @@
             @click="gotoChild(child.id)"
           >
             {{ child.firstName }} {{ child.lastName }}
+            <span v-if="child.birthDate" class="text-sm text-gray-400 ml-2">{{ getAge(child.birthDate) }} años</span>
           </li>
         </ul>
       </div>
@@ -104,6 +107,15 @@ const mergingId = ref('')
 
 const formatDate = (d: string) => new Date(d).toLocaleDateString('es-CO')
 
+const getAge = (birthDate: string) => {
+  const today = new Date()
+  const birth = new Date(birthDate)
+  let age = today.getFullYear() - birth.getFullYear()
+  const m = today.getMonth() - birth.getMonth()
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
+  return age
+}
+
 const handleLogin = async () => {
   try {
     await admin.login(password.value)
@@ -115,6 +127,14 @@ const doSearch = async () => {
   searched.value = true
   try {
     results.value = await admin.searchChildren(searchName.value)
+  } catch {}
+}
+
+const doShowAll = async () => {
+  searchName.value = ''
+  searched.value = true
+  try {
+    results.value = await admin.searchChildren('')
   } catch {}
 }
 
