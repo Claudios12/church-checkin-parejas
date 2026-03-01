@@ -1,14 +1,19 @@
 <script setup lang="ts">
-// ensure admin middleware protects this page
 definePageMeta({ middleware: 'admin' })
 
 import { useAdmin } from '~/composables/useAdmin'
 import type { ChildDetails } from '~/composables/useAdmin'
 import UiButton from '~/components/ui/Button.vue'
+import UiInput from '~/components/ui/Input.vue'
 
 const admin = useAdmin()
 const child = ref<ChildDetails | null>(null)
 const route = useRoute()
+
+const editingParentId = ref<string | null>(null)
+const editForm = ref({ firstName: '', lastName: '', phone: '', address: '', documentId: '' })
+const saving = ref(false)
+const saveError = ref('')
 
 const formatDate = (d: string) => new Date(d).toLocaleDateString()
 const formatDateTime = (d: string) => new Date(d).toLocaleString()
@@ -24,8 +29,40 @@ const logout = () => {
   navigateTo('/admin')
 }
 
-const goBack = () => {
-  navigateTo('/admin')
+const goBack = () => navigateTo('/admin')
+
+const startEdit = (p: any) => {
+  editingParentId.value = p.id
+  editForm.value = {
+    firstName: p.firstName,
+    lastName: p.lastName,
+    phone: p.phone || '',
+    address: p.address || '',
+    documentId: p.documentId || '',
+  }
+  saveError.value = ''
+}
+
+const cancelEdit = () => {
+  editingParentId.value = null
+  saveError.value = ''
+}
+
+const saveParent = async (parentId: string) => {
+  saving.value = true
+  saveError.value = ''
+  try {
+    await $fetch(`/api/admin/parent/${parentId}`, {
+      method: 'PUT',
+      headers: { 'x-admin-password': localStorage.getItem('admin_password') || '' },
+      body: editForm.value,
+    })
+    editingParentId.value = null
+    await load()
+  } catch (e: any) {
+    saveError.value = e.data?.statusMessage || 'Error al guardar'
+  }
+  saving.value = false
 }
 
 onMounted(load)
@@ -38,9 +75,7 @@ onMounted(load)
     </div>
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold">Detalles del Niño</h1>
-      <UiButton variant="secondary" @click="logout">
-        Cerrar Sesión
-      </UiButton>
+      <UiButton variant="secondary" @click="logout">Cerrar Sesión</UiButton>
     </div>
 
     <div v-if="admin.loading.value" class="text-center">Cargando...</div>
@@ -57,13 +92,51 @@ onMounted(load)
 
       <section class="mb-6">
         <h2 class="text-xl font-semibold mb-2">Padres</h2>
-        <ul class="list-disc ml-6">
-          <li v-for="p in child.family.parents" :key="p.id">
-            <div class="font-medium">{{ p.firstName }} {{ p.lastName }}</div>
-            <div class="text-sm text-gray-600">Tel: {{ p.phone || '-' }}</div>
-            <div class="text-sm text-gray-600">Dir: {{ p.address || '-' }}</div>
-          </li>
-        </ul>
+        <div v-for="p in child.family.parents" :key="p.id" class="border rounded p-3 mb-3">
+
+          <!-- View mode -->
+          <div v-if="editingParentId !== p.id">
+            <p class="font-medium">{{ p.firstName }} {{ p.lastName }}</p>
+            <p class="text-sm text-gray-600">Cédula: {{ p.documentId || '-' }}</p>
+            <p class="text-sm text-gray-600">Tel: {{ p.phone || '-' }}</p>
+            <p class="text-sm text-gray-600">Dir: {{ p.address || '-' }}</p>
+            <UiButton variant="secondary" size="small" class="mt-2" @click="startEdit(p)">
+              Editar
+            </UiButton>
+          </div>
+
+          <!-- Edit mode -->
+          <div v-else class="space-y-2">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-xs text-gray-500">Nombre</label>
+                <UiInput v-model="editForm.firstName" placeholder="Nombre" />
+              </div>
+              <div>
+                <label class="text-xs text-gray-500">Apellido</label>
+                <UiInput v-model="editForm.lastName" placeholder="Apellido" />
+              </div>
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">Cédula</label>
+              <UiInput v-model="editForm.documentId" placeholder="Cédula" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">Teléfono</label>
+              <UiInput v-model="editForm.phone" placeholder="Teléfono" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">Dirección</label>
+              <UiInput v-model="editForm.address" placeholder="Dirección" />
+            </div>
+            <p v-if="saveError" class="text-red-600 text-sm">{{ saveError }}</p>
+            <div class="flex gap-2">
+              <UiButton :loading="saving" @click="saveParent(p.id)">Guardar</UiButton>
+              <UiButton variant="secondary" @click="cancelEdit">Cancelar</UiButton>
+            </div>
+          </div>
+
+        </div>
       </section>
 
       <section>
@@ -95,4 +168,3 @@ onMounted(load)
     <UiButton class="mt-6" @click="goBack">Volver</UiButton>
   </div>
 </template>
-
