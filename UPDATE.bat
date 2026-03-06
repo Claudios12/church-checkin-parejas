@@ -9,9 +9,21 @@ echo ================================
 echo.
 
 echo Downloading latest changes...
-git pull
+git fetch origin
 if errorlevel 1 (
     echo ERROR: Update failed. Check your internet connection.
+    pause
+    exit /b 1
+)
+
+REM Get current branch name
+for /f "tokens=*" %%b in ('git rev-parse --abbrev-ref HEAD') do set CURRENT_BRANCH=%%b
+
+REM Force sync with remote (removes conflicting untracked files first)
+git clean -fd
+git reset --hard origin/%CURRENT_BRANCH%
+if errorlevel 1 (
+    echo ERROR: Could not sync with remote.
     pause
     exit /b 1
 )
