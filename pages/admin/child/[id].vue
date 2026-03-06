@@ -15,6 +15,12 @@ const editForm = ref({ firstName: '', lastName: '', phone: '', address: '', docu
 const saving = ref(false)
 const saveError = ref('')
 
+const linkingParent = ref(false)
+const linkSearch = ref('')
+const linkResults = ref<any[]>([])
+const linkSearching = ref(false)
+const linkError = ref('')
+
 const editingChild = ref(false)
 const childForm = ref({ firstName: '', lastName: '', birthDate: '' })
 const savingChild = ref(false)
@@ -128,6 +134,52 @@ const saveParent = async (parentId: string) => {
   saving.value = false
 }
 
+const startLinkParent = () => {
+  linkingParent.value = true
+  linkSearch.value = ''
+  linkResults.value = []
+  linkError.value = ''
+}
+
+const cancelLinkParent = () => {
+  linkingParent.value = false
+  linkResults.value = []
+  linkError.value = ''
+}
+
+const searchParents = async () => {
+  if (!linkSearch.value.trim()) return
+  linkSearching.value = true
+  linkError.value = ''
+  try {
+    const data = await $fetch<{ parents: any[] }>('/api/admin/parent/search', {
+      headers: { 'x-admin-password': localStorage.getItem('admin_password') || '' },
+      query: { term: linkSearch.value.trim() },
+    })
+    linkResults.value = data.parents
+    if (!data.parents.length) linkError.value = 'No se encontraron padres'
+  } catch {
+    linkError.value = 'Error al buscar'
+  }
+  linkSearching.value = false
+}
+
+const linkToParent = async (targetFamilyId: string, parentName: string) => {
+  if (!child.value) return
+  if (!confirm(`¿Vincular a ${child.value.firstName} con la familia de ${parentName}?`)) return
+  try {
+    await $fetch(`/api/admin/child/${child.value.id}/link`, {
+      method: 'POST' as const,
+      headers: { 'x-admin-password': localStorage.getItem('admin_password') || '' },
+      body: { familyId: targetFamilyId },
+    })
+    cancelLinkParent()
+    await load()
+  } catch (e: any) {
+    linkError.value = e.data?.statusMessage || 'Error al vincular'
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -192,7 +244,30 @@ onMounted(load)
 
       <!-- Parents -->
       <section class="mb-6">
-        <h2 class="text-xl font-semibold mb-2">Padres</h2>
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-xl font-semibold">Padres</h2>
+          <UiButton v-if="!linkingParent" variant="secondary" size="small" @click="startLinkParent">+ Vincular padre</UiButton>
+        </div>
+
+        <!-- Link parent panel -->
+        <div v-if="linkingParent" class="border rounded p-3 mb-3 bg-blue-50">
+          <p class="font-medium text-sm mb-2">Buscar padre por cédula o nombre:</p>
+          <div class="flex gap-2">
+            <UiInput v-model="linkSearch" placeholder="Cédula o nombre..." class="flex-1" @keyup.enter="searchParents" />
+            <UiButton :loading="linkSearching" @click="searchParents">Buscar</UiButton>
+            <UiButton variant="secondary" @click="cancelLinkParent">Cancelar</UiButton>
+          </div>
+          <p v-if="linkError" class="text-red-600 text-sm mt-1">{{ linkError }}</p>
+          <div v-for="r in linkResults" :key="r.id" class="mt-2 border rounded p-2 bg-white flex justify-between items-center">
+            <div>
+              <p class="font-medium">{{ r.firstName }} {{ r.lastName }}</p>
+              <p class="text-xs text-gray-500">Cédula: {{ r.documentId || '-' }} | Tel: {{ r.phone || '-' }}</p>
+              <p class="text-xs text-gray-500">Hijos: {{ r.children.map((c: any) => `${c.firstName} ${c.lastName}`).join(', ') || 'ninguno' }}</p>
+            </div>
+            <UiButton size="small" @click="linkToParent(r.familyId, `${r.firstName} ${r.lastName}`)">Vincular</UiButton>
+          </div>
+        </div>
+
         <div v-for="p in child.family.parents" :key="p.id" class="border rounded p-3 mb-3">
 
           <!-- View mode -->
