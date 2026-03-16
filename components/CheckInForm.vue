@@ -1,4 +1,17 @@
 <template>
+  <!-- Developer Celebration -->
+  <Transition name="celebration">
+    <div v-if="showCelebration" class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+      <div class="absolute inset-0 confetti-container">
+        <div v-for="i in 50" :key="i" class="confetti" :style="getConfettiStyle(i)"></div>
+      </div>
+      <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-6 rounded-2xl shadow-2xl transform scale-110 animate-bounce pointer-events-auto">
+        <p class="text-3xl font-bold mb-2">🎉 ¡Bienvenido, Creador! 🎉</p>
+        <p class="text-lg">Gracias por crear este sistema increíble</p>
+      </div>
+    </div>
+  </Transition>
+
   <!-- Loading overlay -->
   <div v-if="checkIn.loading.value" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl p-8 text-center shadow-2xl">
@@ -92,6 +105,56 @@
       <p v-if="foundChildren.length === 0" class="text-gray-400 text-center py-8 text-base">
         No hay niños registrados en esta familia.
       </p>
+    </div>
+
+    <!-- Add child button / form -->
+    <div>
+      <button
+        v-if="!showAddChild"
+        type="button"
+        class="w-full py-3 rounded-xl text-blue-400 border border-blue-700 hover:bg-blue-900/30 transition active:scale-95 touch-manipulation"
+        @click="showAddChild = true"
+      >
+        + Agregar niño a la familia
+      </button>
+      <div v-else class="bg-gray-800 rounded-2xl p-4 space-y-3">
+        <p class="text-white font-semibold">Nuevo niño</p>
+        <div class="grid grid-cols-2 gap-2">
+          <input
+            v-model="newChildForm.firstName"
+            class="bg-gray-700 text-white rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Nombre"
+          />
+          <input
+            v-model="newChildForm.lastName"
+            class="bg-gray-700 text-white rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Apellido"
+          />
+        </div>
+        <input
+          v-model="newChildForm.birthDate"
+          type="date"
+          class="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <p v-if="addChildError" class="text-red-400 text-sm">{{ addChildError }}</p>
+        <div class="flex gap-2">
+          <button
+            type="button"
+            class="flex-1 py-2 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 active:scale-95 touch-manipulation disabled:opacity-50"
+            :disabled="addingChild"
+            @click="addChildToFamily"
+          >
+            {{ addingChild ? 'Guardando...' : 'Guardar' }}
+          </button>
+          <button
+            type="button"
+            class="flex-1 py-2 rounded-xl bg-gray-700 text-gray-300 hover:bg-gray-600 active:scale-95 touch-manipulation"
+            @click="showAddChild = false; newChildForm = { firstName: '', lastName: '', birthDate: '' }; addChildError = ''"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Error -->
@@ -253,9 +316,16 @@ const errorMsg = ref('')
 
 // --- Select-kids state ---
 const foundParentName = ref('')
+const foundFamilyId = ref('')
 const foundChildren = ref<Array<{ id: string; firstName: string; lastName: string; birthDate: string }>>([])
 const foundParents = ref<Array<{ firstName: string; lastName: string; documentId?: string | null; phone?: string | null; address?: string | null }>>([])
 const selectedChildIds = ref(new Set<string>())
+
+// --- Add child state ---
+const showAddChild = ref(false)
+const newChildForm = ref({ firstName: '', lastName: '', birthDate: '' })
+const addChildError = ref('')
+const addingChild = ref(false)
 
 // --- Register state ---
 const regForm = ref({ firstName: '', lastName: '', phone: '' })
@@ -267,7 +337,7 @@ const numpadKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'Limpiar', '0',
 // --- Helpers ---
 const getAge = (birthDate: string) => {
   const today = new Date()
-  const birth = new Date(birthDate)
+  const birth = new Date(birthDate.split('T')[0] + 'T12:00:00')
   let age = today.getFullYear() - birth.getFullYear()
   const m = today.getMonth() - birth.getMonth()
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
@@ -302,12 +372,18 @@ const doSearch = async () => {
     const result = await checkIn.searchFamily(numpadInput.value)
     if (result.found && result.family) {
       foundParents.value = result.family.parents
+      foundFamilyId.value = result.family.id
       const normalizedInput = numpadInput.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
       const matchedParent = result.family.parents.find(p => p.documentId === normalizedInput) ?? result.family.parents[0]
       foundParentName.value = `${matchedParent?.firstName || ''} ${matchedParent?.lastName || ''}`.trim()
       foundChildren.value = result.family.children.filter(c => calculateAge(c.birthDate) <= 15)
       selectedChildIds.value = new Set()
       step.value = 'select-kids'
+      const dev = result.family.parents.some(p => isDeveloper(p.firstName, p.lastName))
+      if (dev) {
+        showCelebration.value = true
+        setTimeout(() => { showCelebration.value = false }, 4000)
+      }
     } else {
       regForm.value = { firstName: '', lastName: '', phone: '' }
       regChildren.value = [{ firstName: '', lastName: '', birthDate: '' }]
@@ -338,6 +414,39 @@ const toggleChild = (id: string) => {
   if (s.has(id)) s.delete(id)
   else s.add(id)
   selectedChildIds.value = s
+}
+
+// --- Developer celebration ---
+const showCelebration = ref(false)
+const getConfettiStyle = (_index: number) => {
+  const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
+  return {
+    left: `${Math.random() * 100}%`,
+    animationDelay: `${Math.random() * 2}s`,
+    backgroundColor: colors[Math.floor(Math.random() * colors.length)],
+  }
+}
+
+// --- Add child to existing family ---
+const addChildToFamily = async () => {
+  if (!newChildForm.value.firstName.trim() || !newChildForm.value.lastName.trim() || !newChildForm.value.birthDate) {
+    addChildError.value = 'Completa nombre, apellido y fecha de nacimiento'
+    return
+  }
+  addingChild.value = true
+  addChildError.value = ''
+  try {
+    const child = await $fetch<{ id: string; firstName: string; lastName: string; birthDate: string }>(
+      `/api/family/${foundFamilyId.value}/child`,
+      { method: 'POST', body: newChildForm.value }
+    )
+    foundChildren.value.push(child)
+    showAddChild.value = false
+    newChildForm.value = { firstName: '', lastName: '', birthDate: '' }
+  } catch (e: any) {
+    addChildError.value = e.data?.statusMessage || 'Error al agregar niño'
+  }
+  addingChild.value = false
 }
 
 // --- Submit: existing family ---
@@ -390,12 +499,47 @@ const resetForm = () => {
   numpadInput.value = ''
   errorMsg.value = ''
   foundParentName.value = ''
+  foundFamilyId.value = ''
   foundChildren.value = []
   foundParents.value = []
   selectedChildIds.value = new Set()
+  showAddChild.value = false
+  newChildForm.value = { firstName: '', lastName: '', birthDate: '' }
+  addChildError.value = ''
   regForm.value = { firstName: '', lastName: '', phone: '' }
   regChildren.value = [{ firstName: '', lastName: '', birthDate: '' }]
 }
 
 defineExpose({ resetForm })
 </script>
+
+<style scoped>
+.celebration-enter-active {
+  animation: fadeIn 0.5s ease-out;
+}
+.celebration-leave-active {
+  animation: fadeOut 0.5s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes fadeOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.8); }
+}
+.confetti-container {
+  overflow: hidden;
+}
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  top: -10px;
+  animation: confettiFall 3s linear infinite;
+}
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+}
+</style>

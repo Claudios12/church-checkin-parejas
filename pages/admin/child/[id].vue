@@ -26,14 +26,14 @@ const childForm = ref({ firstName: '', lastName: '', birthDate: '' })
 const savingChild = ref(false)
 const childSaveError = ref('')
 
-const formatDate = (d: string) => new Date(d).toLocaleDateString()
+const formatDate = (d: string) => new Date(d.split('T')[0] + 'T12:00:00').toLocaleDateString()
 const formatDateTime = (d: string) => new Date(d).toLocaleString()
 
-const toInputDate = (d: string) => new Date(d).toISOString().split('T')[0]
+const toInputDate = (d: string) => d.split('T')[0]
 
 const getAge = (d: string) => {
   const today = new Date()
-  const birth = new Date(d)
+  const birth = new Date(d.split('T')[0] + 'T12:00:00')
   let age = today.getFullYear() - birth.getFullYear()
   const m = today.getMonth() - birth.getMonth()
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--

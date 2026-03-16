@@ -7,22 +7,6 @@
       </div>
       <h2 class="text-3xl font-bold mb-6 text-center text-white">¡Registro Completado!</h2>
 
-      <!-- Developer Easter Egg -->
-      <Transition name="celebration">
-        <div v-if="showCelebration" class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-          <!-- Confetti animation background -->
-          <div class="absolute inset-0 confetti-container">
-            <div v-for="i in 50" :key="i" class="confetti" :style="getConfettiStyle(i)"></div>
-          </div>
-
-          <!-- Message -->
-          <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-6 rounded-2xl shadow-2xl transform scale-110 animate-bounce pointer-events-auto">
-            <p class="text-3xl font-bold mb-2">🎉 ¡Bienvenido, Creador! 🎉</p>
-            <p class="text-lg">Gracias por crear este sistema increíble</p>
-          </div>
-        </div>
-      </Transition>
-
       <!-- Stickers Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <template v-for="checkIn in checkIns" :key="checkIn.id">
@@ -141,12 +125,9 @@ import { calculateAge } from '~/utils/age'
 
 interface Props {
   checkIns: CheckInResult[]
-  isDeveloper?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  isDeveloper: false,
-})
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
   done: []
@@ -159,30 +140,6 @@ const autoResetSeconds = parseInt(config.public.autoResetSeconds)
 
 const { printStickers, formatTime, formatDate } = usePrint()
 
-// Easter egg celebration
-const showCelebration = ref(false)
-
-// Trigger celebration if developer
-onMounted(() => {
-  if (props.isDeveloper) {
-    showCelebration.value = true
-
-    // Auto-hide after 4 seconds
-    setTimeout(() => {
-      showCelebration.value = false
-    }, 4000)
-  }
-})
-
-// Generate random confetti positions and animations
-const getConfettiStyle = (_index: number) => {
-  const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
-  return {
-    left: `${Math.random() * 100}%`,
-    animationDelay: `${Math.random() * 2}s`,
-    backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-  }
-}
 
 const showCountdown = ref(false)
 const countdown = ref(autoResetSeconds)
@@ -242,58 +199,5 @@ onUnmounted(() => {
   }
 }
 
-/* Easter egg celebration animations */
-.celebration-enter-active {
-  animation: fadeIn 0.5s ease-out;
-}
 
-.celebration-leave-active {
-  animation: fadeOut 0.5s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-}
-
-/* Confetti animation */
-.confetti-container {
-  overflow: hidden;
-}
-
-.confetti {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  top: -10px;
-  animation: confettiFall 3s linear infinite;
-}
-
-@keyframes confettiFall {
-  0% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(100vh) rotate(360deg);
-    opacity: 0;
-  }
-}
 </style>

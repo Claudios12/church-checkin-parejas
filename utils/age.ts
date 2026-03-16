@@ -2,7 +2,7 @@
  * Calcula la edad en años a partir de una fecha de nacimiento
  */
 export function calculateAge(birthDate: string | Date): number {
-  const birth = typeof birthDate === 'string' ? new Date(birthDate) : birthDate
+  const birth = typeof birthDate === 'string' ? new Date(birthDate.split('T')[0] + 'T12:00:00') : birthDate
   const today = new Date()
 
   let age = today.getFullYear() - birth.getFullYear()
