@@ -1,6 +1,7 @@
 export interface Parent {
   firstName: string
   lastName: string
+  documentId?: string
   phone?: string
   address?: string
 }
@@ -16,6 +17,7 @@ export interface CheckInFormData {
   parentId: string
   parents: Parent[]
   children: Child[]
+  isVisitor?: boolean
 }
 
 export interface CheckInResult {
@@ -44,8 +46,9 @@ export interface FamilySearchResult {
       id: string
       firstName: string
       lastName: string
-      phone?: string
-      address?: string
+      documentId?: string | null
+      phone?: string | null
+      address?: string | null
     }>
     children: Array<{
       id: string

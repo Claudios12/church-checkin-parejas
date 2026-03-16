@@ -41,6 +41,9 @@
           </li>
         </ul>
       </div>
+      <div v-else-if="searchError" class="bg-red-100 text-red-700 p-3 rounded text-sm">
+        Error: {{ searchError }}
+      </div>
       <div v-else-if="searched">
         <p class="text-gray-500">No se encontraron niños.</p>
       </div>
@@ -100,6 +103,7 @@ const password = ref('')
 const searchName = ref('')
 const results = ref<Array<{ id: string; firstName: string; lastName: string }>>([])
 const searched = ref(false)
+const searchError = ref('')
 
 const duplicates = ref<any[]>([])
 const loadingDuplicates = ref(false)
@@ -126,17 +130,23 @@ const handleLogin = async () => {
 
 const doSearch = async () => {
   searched.value = true
+  searchError.value = ''
   try {
     results.value = await admin.searchChildren(searchName.value)
-  } catch {}
+  } catch (e: any) {
+    searchError.value = e.data?.statusMessage || e.message || 'Error al buscar'
+  }
 }
 
 const doShowAll = async () => {
   searchName.value = ''
   searched.value = true
+  searchError.value = ''
   try {
     results.value = await admin.searchChildren('')
-  } catch {}
+  } catch (e: any) {
+    searchError.value = e.data?.statusMessage || e.message || 'Error al cargar todos los niños'
+  }
 }
 
 const gotoChild = (id: string) => {
