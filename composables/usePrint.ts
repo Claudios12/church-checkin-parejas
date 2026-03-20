@@ -25,7 +25,7 @@ export const usePrint = () => {
     .sticker:last-child { page-break-after: avoid; }
     .child-sticker { border: 4px solid #3b82f6; }
     .parent-sticker { border: 4px solid #10b981; }
-    .logo { max-height: 12mm; margin-bottom: 2mm; display: block; }
+    .logo { max-height: 12mm; margin-bottom: 2mm; display: block; filter: contrast(999%); }
     .sticker-type { font-size: 6pt; font-weight: bold; text-align: center; margin-bottom: 1mm; text-transform: uppercase; line-height: 1; }
     .child-sticker .sticker-type { color: #3b82f6; }
     .parent-sticker .sticker-type { color: #10b981; }
@@ -36,7 +36,7 @@ export const usePrint = () => {
     .age-info { font-size: 6pt; text-align: center; color: #333; margin-top: 1mm; font-weight: 600; line-height: 1; }
     .pickup-label { font-size: 10pt; font-weight: bold; text-align: center; margin-bottom: 1.5mm; color: #333; line-height: 1; }
     .pickup-child-name { font-size: 16pt; font-weight: bold; text-align: center; margin-bottom: 2mm; color: #000; line-height: 1; }
-    .keep-sticker { font-size: 6pt; text-align: center; color: #555; margin-top: 1mm; font-weight: 600; line-height: 1; }
+    .keep-sticker { font-size: 6pt; text-align: center; color: #555; margin-top: 1mm; font-weight: 600; line-height: 1; letter-spacing: 0.15em; word-spacing: 0.35em; }
   `
 
   // Print both stickers together — used from the Windows tablet
@@ -44,7 +44,7 @@ export const usePrint = () => {
     const generateStickerGrids = () => checkIns.map(checkIn => `
       <div class="page">
         <div class="sticker child-sticker">
-          <img src="/Logo_CimaKids.png" class="logo" alt="Logo" />
+          <img src="/Logo_CimaKidsBlack.png" class="logo" alt="Logo" />
           <div class="sticker-type">NIÑO</div>
           <div class="church-name">${churchName}</div>
           <div class="child-name">${checkIn.child.firstName}</div>
@@ -54,7 +54,7 @@ export const usePrint = () => {
           <div class="age-info">${calculateAge(checkIn.child.birthDate)} años</div>
         </div>
         <div class="sticker parent-sticker">
-          <img src="/Logo_CimaKids.png" class="logo" alt="Logo" />
+          <img src="/Logo_CimaKidsBlack.png" class="logo" alt="Logo" />
           <div class="sticker-type">PADRE/MADRE - RECOGIDA</div>
           <div class="church-name">${churchName}</div>
           <div class="pickup-label">Para recoger a:</div>
