@@ -32,8 +32,8 @@ export const usePrint = () => {
     .church-name { font-size: 8pt; font-weight: bold; margin-bottom: 1mm; text-align: center; color: #333; line-height: 1; }
     .child-name { font-size: 18pt; font-weight: bold; text-align: center; margin-bottom: 1.5mm; line-height: 1; color: #000; }
     .family-name { font-size: 12pt; text-align: center; margin-bottom: 2mm; color: #555; line-height: 1; }
-    .timestamp { font-size: 6pt; text-align: center; color: #666; margin-top: 0.5mm; line-height: 1; }
-    .age-info { font-size: 6pt; text-align: center; color: #333; margin-top: 1mm; font-weight: 600; line-height: 1; }
+    .timestamp { font-size: 10pt; text-align: center; color: #666; margin-top: 0.5mm; line-height: 1; }
+    .age-info { font-size: 10pt; text-align: center; color: #333; margin-top: 1mm; font-weight: 600; line-height: 1; }
     .pickup-label { font-size: 10pt; font-weight: bold; text-align: center; margin-bottom: 1.5mm; color: #333; line-height: 1; }
     .pickup-child-name { font-size: 16pt; font-weight: bold; text-align: center; margin-bottom: 2mm; color: #000; line-height: 1; }
     .keep-sticker { font-size: 10pt; text-align: center; color: #555; margin-top: 1mm; font-weight: 600; line-height: 1; letter-spacing: 0.15em; word-spacing: 0.35em; }
