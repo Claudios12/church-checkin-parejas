@@ -36,7 +36,7 @@ export const usePrint = () => {
     .age-info { font-size: 6pt; text-align: center; color: #333; margin-top: 1mm; font-weight: 600; line-height: 1; }
     .pickup-label { font-size: 10pt; font-weight: bold; text-align: center; margin-bottom: 1.5mm; color: #333; line-height: 1; }
     .pickup-child-name { font-size: 16pt; font-weight: bold; text-align: center; margin-bottom: 2mm; color: #000; line-height: 1; }
-    .keep-sticker { font-size: 6pt; text-align: center; color: #555; margin-top: 1mm; font-weight: 600; line-height: 1; letter-spacing: 0.15em; word-spacing: 0.35em; }
+    .keep-sticker { font-size: 10pt; text-align: center; color: #555; margin-top: 1mm; font-weight: 600; line-height: 1; letter-spacing: 0.15em; word-spacing: 0.35em; }
   `
 
   // Print both stickers together — used from the Windows tablet
