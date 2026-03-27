@@ -1,6 +1,11 @@
 @echo off
-title Cambiar de Rama
+title Parejas Event - Cambiar de Rama
 cd /d "%~dp0"
+
+echo ============================================
+echo   Parejas Event - Cambiar de Rama
+echo ============================================
+echo.
 
 echo Obteniendo ramas disponibles...
 git fetch --all
@@ -22,13 +27,20 @@ if "%RAMA%"=="" (
 
 git checkout %RAMA%
 if errorlevel 1 (
-    echo.
     echo ERROR: No se pudo cambiar a la rama "%RAMA%".
     pause
     exit /b 1
 )
 
+echo Descargando ultimos cambios...
+git pull
+
+echo Instalando dependencias...
+call bun install
+
 echo.
-echo Rama cambiada a: %RAMA%
-echo Reconstruyendo aplicacion...
-call UPDATE.bat
+echo ============================================
+echo   Rama cambiada a: %RAMA%
+echo   Ejecuta start.bat para iniciar.
+echo ============================================
+pause
