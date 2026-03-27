@@ -87,23 +87,13 @@ if %errorlevel% neq 0 (
 echo Done.
 echo.
 
-:: ── 4. Desktop shortcut with icon ────────────
+:: ── 4. Desktop shortcut ──────────────────────
 echo [4/4] Creating desktop shortcut...
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "Add-Type -AssemblyName System.Drawing;" ^
   "$dir = '%CD%';" ^
-  "$pngPath = Join-Path $dir 'public\Logo_LibresParaAmar.png';" ^
-  "$icoPath = Join-Path $dir 'public\Logo_LibresParaAmar.ico';" ^
-  "$png = [System.Drawing.Image]::FromFile($pngPath);" ^
-  "$bmp = New-Object System.Drawing.Bitmap($png);" ^
-  "$hicon = $bmp.GetHicon();" ^
-  "$icon = [System.Drawing.Icon]::FromHandle($hicon);" ^
-  "$stream = [System.IO.File]::OpenWrite($icoPath);" ^
-  "$icon.Save($stream); $stream.Close(); $icon.Dispose(); $bmp.Dispose(); $png.Dispose();" ^
   "$shell = New-Object -ComObject WScript.Shell;" ^
   "$lnk = $shell.CreateShortcut([Environment]::GetFolderPath('Desktop') + '\Parejas Event.lnk');" ^
   "$lnk.TargetPath = Join-Path $dir 'start.bat';" ^
-  "$lnk.IconLocation = $icoPath;" ^
   "$lnk.WorkingDirectory = $dir;" ^
   "$lnk.Save()"
 echo Done.
