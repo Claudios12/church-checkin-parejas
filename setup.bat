@@ -54,6 +54,9 @@ if not exist ".env" copy ".env.example" ".env" >nul
 call bun install
 if %errorlevel% neq 0 ( echo ERROR: bun install failed. & pause & exit /b 1 )
 
+call bunx nuxt prepare
+if %errorlevel% neq 0 ( echo ERROR: nuxt prepare failed. & pause & exit /b 1 )
+
 call bun run build
 if %errorlevel% neq 0 ( echo ERROR: Build failed. & pause & exit /b 1 )
 
