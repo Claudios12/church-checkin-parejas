@@ -1,4 +1,7 @@
 @echo off
+title Parejas Event - Setup
+cd /d "%~dp0"
+
 echo ============================================
 echo   Parejas Event - Setup
 echo ============================================
@@ -37,7 +40,7 @@ echo All tools verified. Continuing setup...
 echo.
 
 :: ── 1. Clone repo ───────────────────────────
-echo [1/3] Cloning repository...
+echo [1/4] Cloning repository...
 if exist "church-checkin-parejas" (
     echo Folder already exists. Pulling latest changes...
     cd church-checkin-parejas
@@ -54,8 +57,16 @@ if exist "church-checkin-parejas" (
 echo Done.
 echo.
 
+:: ── Auto-create .env if missing ──────────────
+if not exist ".env" (
+    echo Creating .env file from template...
+    copy ".env.example" ".env" >nul
+    echo .env created.
+    echo.
+)
+
 :: ── 2. Install dependencies ──────────────────
-echo [2/3] Installing dependencies...
+echo [2/4] Installing dependencies...
 call bun install
 if %errorlevel% neq 0 (
     echo ERROR: bun install failed.
@@ -65,8 +76,19 @@ if %errorlevel% neq 0 (
 echo Done.
 echo.
 
-:: ── 3. Desktop shortcut with icon ────────────
-echo [3/3] Creating desktop shortcut...
+:: ── 3. Build the app ─────────────────────────
+echo [3/4] Building the app (this may take a minute)...
+call bun run build
+if %errorlevel% neq 0 (
+    echo ERROR: Build failed.
+    pause
+    exit /b 1
+)
+echo Done.
+echo.
+
+:: ── 4. Desktop shortcut with icon ────────────
+echo [4/4] Creating desktop shortcut...
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "Add-Type -AssemblyName System.Drawing;" ^
   "$dir = '%CD%';" ^
