@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import type { CoupleData } from '~/composables/useCouplePrint'
+import type { CoupleData } from '~/composables/usePrint'
 
 const showPreview = ref(false)
 const coupleData = ref<CoupleData | null>(null)

@@ -8,30 +8,17 @@ export default defineNuxtConfig({
   ],
 
   runtimeConfig: {
-    databaseUrl: process.env.DATABASE_URL || 'file:./dev.db',
-    // simple admin password for protected pages (not public)
-    adminPassword: process.env.ADMIN_PASSWORD || 'admin',
     public: {
-      churchName: process.env.CHURCH_NAME || 'Cima Iglesia',
       autoResetSeconds: process.env.AUTO_RESET_SECONDS || '5',
     }
   },
 
   app: {
     head: {
-      title: 'Registro de Niños - Iglesia',
+      title: 'Un Ascenso con Propósito – Evento de Parejas',
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no' }
       ],
-      link: [
-        { rel: 'icon', href: '/Logo_CimaKids.png' }
-      ],
-    },
-  },
-
-  nitro: {
-    externals: {
-      traceInclude: ['./node_modules/.prisma/client'],
     },
   },
 
